@@ -1,10 +1,12 @@
-####3.1 CONNECTANCE ON EXTINCTIONS/ABUNDANCES using a niche-model####
+####0.0 libraries####
 
 library(ATNr)
 library(dplyr)
 library(vegan)
 library(ggplot2)
 
+
+####3.1 CONNECTANCE ON EXTINCTIONS/ABUNDANCES using a niche-model####
 
 
 ####3.2 defining explanatory/response variables####  
@@ -26,7 +28,7 @@ n_sub = seq(0,1, by=0.125)*(n_tot-n_bas)
 #LEAVE OUT FOR NOW
 
 con <- seq(0.05, 0.45, by = 0.025) #connectance values of the food webs (EXPLANATORY)
-reps<- 10 #no of replicates per food web
+reps<- 100 #no of replicates per food web
 times <- seq(1, 1e8, by = 1e6) #times for integration
 biom <- runif(n_tot, 1, 4) #initial biomasses - changing them doesn't affect the abundances in the long run
 BM <- runif(n_tot, 2, 3) %>% #body masses of the species
@@ -51,6 +53,8 @@ extinctions_mat <- NULL
 
 #this line just creates a niche model with C=0.15
 #fw <- create_niche_model(S = n_tot, C = 0.45)
+i=0
+j=0
 
 for (j in 1:reps) {
   BM <- runif(n_tot, 2, 3) %>% #body masses of the species
@@ -77,6 +81,7 @@ for (j in 1:reps) {
       #diversity()
   }
   extinctions_mat = rbind(extinctions_mat, extinctions)
+  print(j)
   
 }
 extinctions_mat <- extinctions_mat %>% as.data.frame()
@@ -85,49 +90,36 @@ extinctions_mat <- extinctions_mat %>% as.data.frame()
 colnames(extinctions_mat) <- paste0("Connectance_",con)
 
 
-####plotting####
+####4.1 plotting EXTINCTION OVER CONNECTENCE (entire food web)####
 
-
-extinctions_mat$Connectance_0.1 %>% mean()
-extinctions_mat$Connectance_0.45 %>% mean()
-
-####nonsense####
- a <- rep(1,10)
-b <- rep(2,10)
-
-
-
-
-rbind(a,b)
-
-plot_odeweb(sol, n_tot)
-
-
-
-
-#lets use only extinctions for now
-
-biomasses_out <- biomasses_out %>%
+#create a df with connectance, extinctions and variance of extinctions
+data.ext_con <- con     #set up df, first col will be connectance
+data.ext_con <- rbind(data.ext_con, t(apply(extinctions_mat, MARGIN = 2, mean))) #add mean no. of extinctions of n=rep iterations
+data.ext_con <- rbind(data.ext_con, t(apply(extinctions_mat, MARGIN = 2, var)))  #add variance of extinctions of n=rep iterations
+data.ext_con <- data.ext_con %>% #transpose and save as dataframe
+  t() %>%
   as.data.frame()
   
-biomasses_out$V1 %>%
-  sort() %>%
-  plot()
+#rename rows and columns:
+rownames(data.ext_con) <- NULL
+colnames(data.ext_con) <- c("con", "ext.m", "ext.v")
+
+#plot the mean extinction numbers
+ggplot(data.ext_con, aes(x = con, y=ext.m))+
+  geom_point()+
+  scale_y_continuous(limits = c(0, max(data.ext_con$ext.m)+1)) #becomes asymptotic to x-axis parallel with connectance -> 0.5
+
+#plot the variance of the extinctions
+ggplot(data.ext_con, aes(x = con, y=ext.v))+
+  geom_point()+
+  scale_y_continuous(limits = c(0, max(data.ext_con$ext.v)+1)) #interesting pattern, lets have a look at it with 10000 rep's
+
+
+####4.2 plotting the same stuff for a subset food web####
+NULL
 
 
 
-abundances_out <- abundances_out %>%
-  as.data.frame()
- 
-
-
-abundances_out$V1 %>% 
-  sort() %>%
-  plot()
-
-abundances_out$V2 %>% 
-  sort() %>%
-  plot()
 
 
 
