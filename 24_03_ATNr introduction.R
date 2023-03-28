@@ -151,3 +151,10 @@ sol %>%
 
 #####alternative
 ?create_niche_model
+
+
+c <- seq(1,4)
+a <- matrix(c,2,2)
+
+a[1,] <- c(8,6)
+a[,1] <- c(8,6)

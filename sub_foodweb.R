@@ -129,17 +129,84 @@ sum((abs(biomasses_out_0.5 - biomasses_out_1) > 0.1) == TRUE)
   
 #iterate through 20 replicates per food web  
 
-####3.1 explanatory: connectance using a niche-model####
+####3.1 CONNECTANCE ON EXTINCTIONS/ABUNDANCES using a niche-model####
   
 ####3.2 defining explanatory/response variables####  
   #explanatory:
-  connectance <- seq(0.2, 0.45, by=0.05)
+  #connectance of the food web
+  #n_sub / n_tot = size of the sub-food web in relation to the total food web
   
   #responses (each to be compared, between a food web of n species and a sub-foodweb of k<n species)
-  No.ext #number of extinctions
-  abundances #total biomass / Body mass
-  connectance #in the final food web
+  No.ext = NULL #number of extinctions
+  abundances =NULL #total biomass / Body mass
 
-####3.3 set up parameters####
+####3.3 set up parameters and food web####
+  n_bas <- 12
+  n_tot <- 64
+  n_sub = seq(0,1, by=0.125)*(n_tot-n_bas) 
+  con <- seq(0.1, 0.45, by = 0.05)
+  
+  
+  
+  
+  
+  #seeds.fw <- seq(1,length(con)*length(reps), by=1) #seeds for creating the food web, 
+    #LEAVE OUT FOR NOW
+  
+  reps<- 10 #no of replicates per food web
+  times <- seq(1, 1e8, by = 1e6) #times for integration
+  biom <- runif(n_tot, 1, 4) #initial biomasses
+  
+  for (i in 1:length(con)){
+    fw <- create_niche_model(S = n_tot, C = con[i])
+    BM <- runif(n_tot, 2, 3) %>%
+      sort()
+    BM <- 10^BM
+    
+    model <- create_model_Unscaled(n_tot, n_bas, BM, fw)
+    
+  }
+
+  
+  
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    
+####4.1 looping it####    
+  for (i in 1:length(reps)){
+
+    fw <- create_niche_model(S= n_tot, C =con[i])
+    i = i+1
+    for (j in 1: length(con)) {
+        #initialize a model here
+        
+      j=j+1
+      
+    }
+    
+    
+  }
+  
   
   
