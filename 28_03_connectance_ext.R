@@ -21,7 +21,7 @@ abundances =NULL #total biomass / Body mass
 ####3.3 set up parameters and food web####
 n_bas <- 8
 n_tot <- 64
-n_sub = seq(0,1, by=0.125)*(n_tot-n_bas) 
+
 
 
 #seeds.fw <- seq(1,length(con)*length(reps), by=1) #seeds for creating the food web, 
@@ -41,14 +41,41 @@ BM <- (10^BM)#does this affect the abundances?
 i = 0
 exts = c()
 
-#initialize output vector:
+#initialize output vectors for whole food web:
 extinctions <- rep(NA, length(con))
 biomasses_out <- matrix(data=NA, nrow = n_tot, ncol = length(con)) 
   #a matrix containing the biomasses at the final time 
   #for each connectance value (columns) and species (rows)
 abundances_out <- matrix(data = NA, nrow = n_tot, ncol = length(con))
 extinctions_mat <- NULL
- 
+
+####remove below####
+#initialize variables for a subfoodweb:
+by = 0.25 #in relation to n_tot, should produce an integer when multiplying with n_tot
+n_sub = seq(by*n_tot, n_tot, by = by*n_tot) 
+
+#initialize output vectors for a sub food web as a list
+
+vector <- BM # a vector, containing every species ordered by BM
+
+sub_fw_list <- list()
+sub_fw_list[[1]] <- sample(vector, n_sub[2])
+####remove above####
+
+#create a sub-foodweb, using the 25% lowest BM species:
+tresh = 0.25
+tresh = tresh*length(BM)
+
+sub.low <- BM[1:tresh]
+
+
+#create a sub-foodweb, using the 25% upper BM species:
+tresh = 0.75
+tresh = tresh*length(BM)
+tresh = tresh+1 #these 3 rows are ugly, but otherwise it does not work -.-
+
+sub.high <- BM[tresh:length(BM)]
+#NOW THIS HAS TO BE APPLIED ON SOL INSIDE THE LOOP!
 
 
 #this line just creates a niche model with C=0.15
@@ -79,6 +106,10 @@ for (j in 1:reps) {
     #shannon <- abundances_out %>%
       #round() %>%
       #diversity()
+    
+    ####
+    #### CREATE A FOR-LOOP HERE, to compare a gradient of sub-foodwebs to whole food web
+    ####
   }
   extinctions_mat = rbind(extinctions_mat, extinctions)
   print(j)
