@@ -28,6 +28,8 @@ n_tot <- 64
 #LEAVE OUT FOR NOW
 
 con <- seq(0.05, 0.45, by = 0.025) #connectance values of the food webs (EXPLANATORY)
+  #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
+  #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 reps<- 100 #no of replicates per food web
 times <- seq(1, 1e8, by = 1e6) #times for integration
 biom <- runif(n_tot, 1, 4) #initial biomasses - changing them doesn't affect the abundances in the long run
@@ -228,7 +230,7 @@ ggplot(data.ext_con, aes(x = con, y=rate) )+
   scale_y_continuous(limits = c(0, max(data.ext_con$ext.small)+0.1)) #becomes asymptotic to x-axis parallel with connectance -> 0.5
   
   #this is partly nonsense, because i set an fixed extinction treshold, and it would have to be dependent on BM of species
-
+  
 
 
 ####4.2 plotting the same stuff for a subset food web####
@@ -236,8 +238,8 @@ NULL
 #actually,lets create a second set of points in the plots above
 
 
+?TroLev()
 
-
-
+Neo Martinez
 
 
