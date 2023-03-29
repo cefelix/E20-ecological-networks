@@ -49,18 +49,10 @@ biomasses_out <- matrix(data=NA, nrow = n_tot, ncol = length(con))
 abundances_out <- matrix(data = NA, nrow = n_tot, ncol = length(con))
 extinctions_mat <- NULL
 
-####remove below####
-#initialize variables for a subfoodweb:
+#initialize steps to select a number for a subfoodweb:
 by = 0.25 #in relation to n_tot, should produce an integer when multiplying with n_tot
-n_sub = seq(by*n_tot, n_tot, by = by*n_tot) 
+n_sub = seq(by*n_tot, 48, by = by*n_tot) 
 
-#initialize output vectors for a sub food web as a list
-
-vector <- BM # a vector, containing every species ordered by BM
-
-sub_fw_list <- list()
-sub_fw_list[[1]] <- sample(vector, n_sub[2])
-####remove above####
 
 #create a sub-foodweb, using the 25% lowest BM species:
 tresh = 0.25
@@ -87,6 +79,8 @@ for (j in 1:reps) {
   BM <- runif(n_tot, 2, 3) %>% #body masses of the species
     sort()
   BM <- (10^BM)
+  extinctions <- rep(NA, length(con))
+  i=0
   
   for (i in 1:length(con)){
     fw <- create_niche_model(S = n_tot, C = con[i])
@@ -100,6 +94,7 @@ for (j in 1:reps) {
     exts = sol[nrow(sol), -1]
     exts = sum(exts <= 0.1)
     extinctions[i] = exts
+    print(i)
     #biomasses_out[,i] = sol[nrow(sol), -1]
     #abundances_out[,i] = sol[nrow(sol), -1]/BM
     #takes the biomasses per species and puts them into a matrix
@@ -110,9 +105,21 @@ for (j in 1:reps) {
     ####
     #### CREATE A FOR-LOOP HERE, to compare a gradient of sub-foodwebs to whole food web
     ####
+    for (h in 1:length(n_sub)) {
+      sample.spec <- sample(1:n_tot, n_sub[h])
+      sub_exts = sol[, -1]
+      sub_exts = sub_exts[nrow(sol), sample.spec]
+      sub_exts = sum(sub_exts <= 0.1)
+      
+      
+    }
   }
   extinctions_mat = rbind(extinctions_mat, extinctions)
   print(j)
+  
+  sub_extinctions_mat16 = rbind(sub_extinctions_mat16)
+  sub_extinctions_mat32
+  sub_extinctions_mat48 
   
 }
 extinctions_mat <- extinctions_mat %>% as.data.frame()
@@ -120,8 +127,12 @@ extinctions_mat <- extinctions_mat %>% as.data.frame()
 
 colnames(extinctions_mat) <- paste0("Connectance_",con)
 
+getwd()
+write.csv(extinctions_mat, "extinctions100rep002.csv")
+
 
 ####4.1 plotting EXTINCTION OVER CONNECTENCE (entire food web)####
+extinctions_mat <- read.csv("./extinctions100rep002.csv")[,-1]
 
 #create a df with connectance, extinctions and variance of extinctions
 data.ext_con <- con     #set up df, first col will be connectance
@@ -135,6 +146,9 @@ data.ext_con <- data.ext_con %>% #transpose and save as dataframe
 rownames(data.ext_con) <- NULL
 colnames(data.ext_con) <- c("con", "ext.m", "ext.v")
 
+#add extinction rate as a seperate column:
+data.ext_con$rate <- data.ext_con$ext.m/n_tot
+
 #plot the mean extinction numbers
 ggplot(data.ext_con, aes(x = con, y=ext.m))+
   geom_point()+
@@ -145,9 +159,15 @@ ggplot(data.ext_con, aes(x = con, y=ext.v))+
   geom_point()+
   scale_y_continuous(limits = c(0, max(data.ext_con$ext.v)+1)) #interesting pattern, lets have a look at it with 10000 rep's
 
+#plot the rate of extinctions
+ggplot(data.ext_con, aes(x = con, y=rate))+
+  geom_point()+
+  scale_y_continuous(limits = c(0, max(data.ext_con$rate)+0.1)) #becomes asymptotic to x-axis parallel with connectance -> 0.5
 
 ####4.2 plotting the same stuff for a subset food web####
 NULL
+#actually,lets create a second set of points in the plots above
+
 
 
 
