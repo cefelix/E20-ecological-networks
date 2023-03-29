@@ -32,11 +32,19 @@ BM <- (10^BM)
 ###
 ###
 
-#output matrices 
+#output matrices: extinctions
 extinctions_mat <- NULL         #extinctions in whole food web
 extinctions.BAS_mat = NULL      #extinctions in the basal species
 extinctions.small_mat = NULL    #extinctions in the 25% smallest species
 extinctions.big_mat = NULL      #extinctions in the 25% biggest species
+
+#output arrays: abundances (or: densities)
+
+abundance_array <- array(dim = c(reps,length(con), n_tot))
+abundance_array <- provideDimnames(abundance_array, sep = "_", base = list("rep", "con", "spec"))
+
+abundance_array[1,1,] <- c(1:64)
+abundance_array[1,1,1:8] #thats amazing!
 
 #loop counters (i set them up against the alphabet because that's cooler)
 j=0
@@ -93,6 +101,9 @@ for (j in 1:reps) {
     extinctions.BAS[i] = exts_BAS
     extinctions.l[i] = exts_low
     extinctions.h[i] = exts_high
+    
+    ####INSERT storing the abundances in the abundance array####
+    
     
   }
   extinctions_mat = rbind(extinctions_mat, extinctions)
@@ -198,6 +209,6 @@ NULL
 
 ?TroLev()
 
-Neo Martinez
+#Neo Martinez
 
 
