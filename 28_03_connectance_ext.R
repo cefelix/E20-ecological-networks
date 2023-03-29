@@ -11,7 +11,7 @@ library(ggplot2)
 ###
 ####3.3 set up parameters and food web####
 n_bas <- 8                #no. of basal species
-n_tot <- 64               #no. of all species
+n_tot <- 128               #no. of all species
 
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
 n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
@@ -20,7 +20,7 @@ con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 
-reps<- 100                              #no of replicates per food web
+reps<- 1                             #no of replicates per food web
 times <- seq(1, 1e10, by = 1e8)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
 BM <- runif(n_tot, 2, 3) %>%            #Body masses 
@@ -28,7 +28,7 @@ BM <- runif(n_tot, 2, 3) %>%            #Body masses
 BM <- (10^BM)            
 
 
-####3.4 initialize output vectors/matrices, loop counts####
+####3.4 initialize output objects, loop counts####
 ###
 ###
 
@@ -43,8 +43,8 @@ extinctions.big_mat = NULL      #extinctions in the 25% biggest species
 abundance_array <- array(dim = c(reps,length(con), n_tot))
 abundance_array <- provideDimnames(abundance_array, sep = "_", base = list("rep", "con", "spec"))
 
-abundance_array[1,1,] <- c(1:64)
-abundance_array[1,1,1:8] #thats amazing!
+#output matrices: shannon index
+shannon_mat = NULL 
 
 #loop counters (i set them up against the alphabet because that's cooler)
 j=0
@@ -61,6 +61,11 @@ for (j in 1:reps) {
   extinctions.BAS <- rep(NA, length(con))
   extinctions.l <- rep(NA, length(con))
   extinctions.h <- rep(NA, length(con))
+  
+  shannon <- rep(NA, length(con))
+  shannon_BAS <- rep(NA, length(con))
+  shannon_small <- rep(NA, length(con))
+  shannon_big <- rep(NA, length(con))
   
   i=0
   
@@ -102,7 +107,13 @@ for (j in 1:reps) {
     extinctions.l[i] = exts_low
     extinctions.h[i] = exts_high
     
-    ####INSERT storing the abundances in the abundance array####
+    #storing abundances in the abundance array
+    abuns = sol[nrow(sol),-1] / BM
+    abundance_array[j,i,] = abuns
+    
+    
+    #storing shannon indices in the shannon vector 
+    shannon[i] = diversity(abuns)
     
     
   }
@@ -112,6 +123,8 @@ for (j in 1:reps) {
   extinctions.small_mat = rbind(extinctions.small_mat, extinctions.l)
   extinctions.big_mat = rbind(extinctions.big_mat, extinctions.h)
   
+  shannon_mat = rbind(shannon_mat, shannon)
+  
   
   
   print(j)
@@ -120,7 +133,7 @@ for (j in 1:reps) {
 
 
 
-####3.6 transform output data to .csv####
+####3.6 transform extinction output data to .csv####
 
 extinctions_mat <- extinctions_mat %>% as.data.frame()
 extinctions.big_mat <- extinctions.big_mat %>% as.data.frame()
@@ -133,16 +146,30 @@ colnames(extinctions.small_mat) <- paste0("Connectance_",con)
 colnames(extinctions.BAS_mat) <- paste0("Connectance_",con)
 
 getwd()
-write.csv(extinctions_mat, "extinctions100all.csv")
-write.csv(extinctions.big_mat, "extinctions100big.csv")
-write.csv(extinctions.small_mat, "extinctions100small.csv")
-write.csv(extinctions.BAS_mat, "extinctions100BAS.csv")
+write.csv(extinctions_mat, "extinctions128all.csv")
+write.csv(extinctions.big_mat, "extinctions128big.csv")
+write.csv(extinctions.small_mat, "extinctions128small.csv")
+write.csv(extinctions.BAS_mat, "extinctions128BAS.csv")
+
+####3.7 transform abundance and shannon output data to .csv####
+shannon_mat <- shannon_mat %>% as.data.frame()
+colnames(shannon_mat) <- paste0("Connectance_", con)
+
+write.csv(shannon_mat, "shannon_mat128.csv")
+
+####4 calculate shannon indices for  abundance array####
+####INSERT####
+
+#"rep", "con", "spec"
+for (k in 1:length(con)) {
+  abuns_small = abundance_array[, con, (n_bas+1):(n_bas+n_sub)]
+  apply(abuns_small, MARGIN = 1,diversity )
+}
+
+####5  plotting EXTINCTION OVER CONNECTANCE (entire food web)####
 
 
-####4  plotting EXTINCTION OVER CONNECTANCE (entire food web)####
-
-
-####4.1 load stored output#### 
+####5.1 load stored output#### 
 #extinctions_mat <- read.csv("./extinctions100rep002.csv")[,-1]
 #extinctions.big_mat <-read.csv("./extinctions100big.csv")
 #extinctions.small_mat <- read.csv("./extinctions.small_mat")
@@ -166,7 +193,6 @@ rownames(data.ext_con) <- NULL
 colnames(data.ext_con) <- c("con", "ext.m", "ext.v", "ext.big", "ext.small", "ext.BAS")
 
 #calculate extinction rates
-#data.ext_con$rate <- data.ext_con$ext.m/n_tot
 data.ext_con$rate <- data.ext_con$ext.m/n_tot
 data.ext_con$ext.big <- data.ext_con$ext.big/n_sub
 data.ext_con$ext.small <- data.ext_con$ext.small/n_sub
@@ -195,7 +221,7 @@ ggplot(data.ext_con, aes(x = con, y=rate) )+
   
 
 
-####5 correlations between whole food web and sub food webs####  
+####6 correlations between whole food web and sub food webs####  
 
 
 
