@@ -23,9 +23,9 @@ con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs
 reps<- 1                             #no of replicates per food web
 times <- seq(1, 1e10, by = 1e8)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
-BM <- runif(n_tot, 2, 3) %>%            #Body masses 
-  sort() 
-BM <- (10^BM)            
+BM <- runif(n_tot, 1, 12) %>%           #Body masses 
+  sort()                                #realistic spanning range in soil food webs (Potapov 2021):
+BM <- (10^BM)                           #https://pubmed.ncbi.nlm.nih.gov/34086977/
 
 
 ####3.4 initialize output objects, loop counts####
