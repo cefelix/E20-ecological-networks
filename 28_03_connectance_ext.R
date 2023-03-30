@@ -188,12 +188,12 @@ write.csv(Sindex_small, "./real/Sindex_small.csv")
 
 ####5.1 load stored output#### 
 
-extinctions_mat <- read.csv("./extinctions128all.csv")[,-1]
-extinctions.big_mat <-read.csv("./extinctions128big.csv")[,-1]
-extinctions.small_mat <- read.csv("./extinctions128small.csv")[,-1]
-extinctions.BAS_mat <- read.csv("./extinctions128BAS.csv")[,-1]
+#extinctions_mat <- read.csv("./extinctions128all.csv")[,-1]
+#extinctions.big_mat <-read.csv("./extinctions128big.csv")[,-1]
+#extinctions.small_mat <- read.csv("./extinctions128small.csv")[,-1]
+#extinctions.BAS_mat <- read.csv("./extinctions128BAS.csv")[,-1]
 
-shannon_mat <- read.csv("./shannon_mat128.csv")[,-1]
+#shannon_mat <- read.csv("./shannon_mat128.csv")[,-1]
 
 
 #create a df with connectance, extinctions and variance of extinctions
@@ -239,12 +239,46 @@ ggplot(data.ext_con, aes(x = con, y=rate) )+
   geom_point(aes(x=con, y=ext.big, color = "biggest consumers"))+
   #geom_point(aes(x=con, y=ext.BAS, color = "red"))+
   scale_y_continuous(limits = c(0, max(data.ext_con$ext.small)+0.1)) #becomes asymptotic to x-axis parallel with connectance -> 0.5
+
+####6 plotting shannon index over connectance####
+data.shan <- con
+
+data.shan <- rbind(data.shan, t(apply(Sindex_all, MARGIN = 2, mean)))
+data.shan <- rbind(data.shan, t(apply(Sindex_BAS, MARGIN = 2, mean)))
+data.shan <- rbind(data.shan, t(apply(Sindex_big, MARGIN = 2, mean)))
+data.shan <- rbind(data.shan, t(apply(Sindex_small, MARGIN = 2, mean)))
+data.shan <- data.shan %>% #transpose and save as dataframe
+  t() %>%
+  as.data.frame()
+
+colnames(data.shan) <- c("con", "all", "basal", "big25", "small25")
+
+#plot it:
+
+ggplot(data.shan, aes(x = con, y=all) )+
+  geom_point()+
+  geom_point(aes(x=con, y=basal, color = "basal species"))+
+  geom_point(aes(x=con, y=small25, color = "smallest consumers"))+
+  geom_point(aes(x=con, y=big25, color = "biggest consumers"))+
+  #geom_point(aes(x=con, y=ext.BAS, color = "red"))+
+  scale_y_continuous(limits = c(0, 3))+
+  #scale_y_continuous(limits = c(0, log(n_tot)+1))+
+  ylab("Shannon Index")+
+  xlab("Connectance")
+  #geom_abline(intercept = log(128), slope = 0, aes(color="black"))+
+  #geom_abline(intercept = log(32), slope = 0, aes(color=F8766D))
   
 
 
-####6 correlations between whole food web and sub food webs####  
+####7 correlations between whole food web and sub food webs####  
 
+cor(data.shan$all, data.shan$basal)
+cor(data.shan$all, data.shan$big25)
+cor(data.shan$all, data.shan$small25)
 
+cor(data.ext_con$rate, data.ext_con$ext.BAS) #Na, because  no extinctions in the basal species
+cor(data.ext_con$rate, data.ext_con$ext.big)
+cor(data.ext_con$rate, data.ext_con$ext.small)
 
 
 
