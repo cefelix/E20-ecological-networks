@@ -20,7 +20,7 @@ con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 
-reps<- 1                             #no of replicates per food web
+reps<- 100                             #no of replicates per food web
 times <- seq(1, 1e10, by = 1e8)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
 BM <- runif(n_tot, 1, 12) %>%           #Body masses 
@@ -146,10 +146,10 @@ colnames(extinctions.small_mat) <- paste0("Connectance_",con)
 colnames(extinctions.BAS_mat) <- paste0("Connectance_",con)
 
 getwd()
-write.csv(extinctions_mat, "extinctions128all.csv")
-write.csv(extinctions.big_mat, "extinctions128big.csv")
-write.csv(extinctions.small_mat, "extinctions128small.csv")
-write.csv(extinctions.BAS_mat, "extinctions128BAS.csv")
+write.csv(extinctions_mat, "./real/extinctions128all.csv")
+write.csv(extinctions.big_mat, "./real/extinctions128big.csv")
+write.csv(extinctions.small_mat, "./real/extinctions128small.csv")
+write.csv(extinctions.BAS_mat, "./real/extinctions128BAS.csv")
 
 ####3.7 transform abundance and shannon output data to .csv####
 shannon_mat <- shannon_mat %>% as.data.frame()
@@ -157,14 +157,31 @@ colnames(shannon_mat) <- paste0("Connectance_", con)
 
 write.csv(shannon_mat, "shannon_mat128.csv")
 
-####4 calculate shannon indices for  abundance array####
-####INSERT####
 
-#"rep", "con", "spec"
-for (k in 1:length(con)) {
-  abuns_small = abundance_array[, con, (n_bas+1):(n_bas+n_sub)]
-  apply(abuns_small, MARGIN = 1,diversity )
-}
+####4 - calculate shannon indices ####
+####
+####4.1 create subset foodwebs' abundance arrays####
+
+abundance_array.BAS <- abundance_array[1:reps, 1:length(con), 1:n_bas]
+abundance_array.small <- abundance_array[1:reps, 1:length(con), (n_bas+1):(n_bas+n_sub)]
+abundance_array.big <- abundance_array[1:reps, 1:length(con), (n_tot-n_sub+1):n_tot]
+
+####4.2 apply vegan::diversity over each abundance array, store output in .csv####
+Sindex_all <- apply(abundance_array, MARGIN = c(1,2), FUN = diversity) %>%
+  as.data.frame()
+Sindex_BAS <- apply(abundance_array.BAS, MARGIN = c(1,2), FUN = diversity) %>%
+  as.data.frame()
+Sindex_big <- apply(abundance_array.small, MARGIN = c(1,2), FUN = diversity) %>%
+  as.data.frame()
+Sindex_small <- apply(abundance_array.big, MARGIN = c(1,2), FUN = diversity) %>%
+  as.data.frame()
+
+#write as csv:
+write.csv(Sindex_all, "./real/Sindex_all.csv")
+write.csv(Sindex_BAS, "./real/Sindex_BAS.csv")
+write.csv(Sindex_big, "./real/Sindex_big.csv")
+write.csv(Sindex_small, "./real/Sindex_small.csv")
+
 
 ####5  plotting EXTINCTION OVER CONNECTANCE (entire food web)####
 
