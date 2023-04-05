@@ -20,7 +20,7 @@ con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 
-reps<- 100                             #no of replicates per food web
+reps<- 100                              #no of replicates per food web
 times <- seq(1, 1e10, by = 1e8)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
 BM <- runif(n_tot, 1, 12) %>%           #Body masses 
@@ -145,17 +145,18 @@ colnames(extinctions.big_mat) <- paste0("Connectance_",con)
 colnames(extinctions.small_mat) <- paste0("Connectance_",con)
 colnames(extinctions.BAS_mat) <- paste0("Connectance_",con)
 
-getwd()
 write.csv(extinctions_mat, "./real/extinctions128all.csv")
 write.csv(extinctions.big_mat, "./real/extinctions128big.csv")
 write.csv(extinctions.small_mat, "./real/extinctions128small.csv")
 write.csv(extinctions.BAS_mat, "./real/extinctions128BAS.csv")
 
+
 ####3.7 transform abundance and shannon output data to .csv####
 shannon_mat <- shannon_mat %>% as.data.frame()
 colnames(shannon_mat) <- paste0("Connectance_", con)
 
-write.csv(shannon_mat, "shannon_mat128.csv")
+write.csv(shannon_mat, "./real/shannon_mat128.csv")
+
 
 
 ####4 - calculate shannon indices ####
@@ -195,6 +196,23 @@ write.csv(Sindex_small, "./real/Sindex_small.csv")
 
 #shannon_mat <- read.csv("./shannon_mat128.csv")[,-1]
 
+####4 calculate shannon indices for  abundance array####
+####INSERT####
+
+#"rep", "con", "spec"
+for (k in 1:length(con)) {
+  abuns_small = abundance_array[, con, (n_bas+1):(n_bas+n_sub)]
+  apply(abuns_small, MARGIN = 1,diversity )
+}
+
+####5  plotting EXTINCTION OVER CONNECTANCE (entire food web)####
+
+
+####5.1 load stored output#### 
+#extinctions_mat <- read.csv("./extinctions100rep002.csv")[,-1]
+#extinctions.big_mat <-read.csv("./extinctions100big.csv")
+#extinctions.small_mat <- read.csv("./extinctions.small_mat")
+#extinctions.BAS_mat <- read.csv("./extinctions100BAS.csv")
 
 #create a df with connectance, extinctions and variance of extinctions
 data.ext_con <- con     #set up df, first col will be connectance
@@ -271,6 +289,7 @@ ggplot(data.shan, aes(x = con, y=all) )+
 
 
 ####7 correlations between whole food web and sub food webs####  
+
 
 cor(data.shan$all, data.shan$basal)
 cor(data.shan$all, data.shan$big25)
