@@ -302,3 +302,11 @@ NULL
 #vertex: nodes
 #https://kateto.net/netscix2016.html
 
+
+###
+#purpose of protocol:
+#base for grading
+#include information i might need in the future to handle similar problems
+#how does question translate into an equation
+
+
