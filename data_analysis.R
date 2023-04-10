@@ -1,146 +1,109 @@
-####0.0 libraries####
-
 library(ATNr)
 library(dplyr)
 library(vegan)
 library(ggplot2)
 
 
-####2 CONNECTANCE ON EXTINCTIONS / ABUNDANCES / SHANNON INDEX, using a niche-model####
 ###
-###
-####2.1 set up parameters and food web####
-n_bas <- 8                #no. of basal species
-n_tot <- 128               #no. of all species
-
-perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
-n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
-
-con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs 
-                                        #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
-                                        #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
-
-reps<- 100                              #no of replicates per food web
-times <- seq(1, 1e12, by = 1e9)         #time for integration of dynamics
-biom <- runif(n_tot, 1, 4)              #initial biomasses
-#BM <- runif(n_tot, 1, 12) %>%           #Body masses 
-  #sort()                                #realistic spanning range in soil food webs (Potapov 2021):
-#BM <- (10^BM)                           #https://pubmed.ncbi.nlm.nih.gov/34086977/
-ext_thresh <- 0.1**6                     #threshold below which species is considered, extinct
-
-
-###
-####2.2 initialize output arrays####
+####1 load raw RDS files, initialize parameters####
 ###
 
-#output arrays: abundances (= densities)
-abundance_array <- array(dim = c(reps,length(con), n_tot))
-abundance_array <- provideDimnames(abundance_array, sep = "_", base = list("rep", "con", "spec"))
-
-#biomasses
-biomass_array <- array(dim = c(reps,length(con), n_tot))
-biomass_array <- provideDimnames(biomass_array, sep = "_", base = list("rep", "con", "spec"))
-
-#extinctions
-extinction_array <- array(dim = c(reps,length(con), n_tot))
-extinction_array <- provideDimnames(extinction_array, sep = "_", base = list("rep", "con", "spec"))
-
-#trophic level
-troph.lvl_array <- array(dim = c(reps,length(con), n_tot))
-troph.lvl_array <- provideDimnames(troph.lvl_array, sep = "_", base = list("rep", "con", "spec"))
-
-
-
-#loop counters (i set them up against the alphabet because that's cooler)
-j=0
-i=0
-
-
-####2.3 compute 1e10 food webs####
-for (j in 1:reps) {
-  BM <- runif(n_tot, 1, 12) %>% #body masses of the species
-    sort()
-  BM <- (10^BM)
-  i=0
-  
-  for (i in 1:length(con)){
-    fw <- create_niche_model(S = n_tot, C = con[i])
-    
-    
-    model <- create_model_Unscaled(n_tot, n_bas, BM, fw) %>%
-      initialise_default_Unscaled()
-    model$ext <- ext_thresh
-    
-    #solve ode's
-    sol = lsoda_wrapper(times, biom, model)
-    
-    #storing abundances in the abundance array
-    abuns = sol[nrow(sol),-1] / BM
-    abundance_array[j,i,] = abuns
-    
-    #final biomasses
-    bioms = sol[nrow(sol),-1]
-    biomass_array[j,i,] = bioms
-    
-    #extinctions
-    exts = sol[nrow(sol), -1]
-    exts = ifelse(exts <= model$ext, yes = 1, no = 0) #accordingly, 1 means species is extinct!
-    extinction_array[j,i,] = exts
-    
-    #trophic levels 
-    troph.lvl_array[j,i,] = TroLev(fw)
-    
-  }
-  
-  print(j)
-}
-
-###
-####2.4 store output arrays into RDS file####
-###
-
-#DANGER: this stores the results from the ODEs above 
-saveRDS(abundance_array, file = "./raw/abundance.rds")
-saveRDS(biomass_array, file = "./raw/biomass.rds")
-saveRDS(extinction_array, file = "./raw/extinction.rds")
-saveRDS(troph.lvl_array, file = "./raw/trophic_lvl.rds")
-
-
-###
-####2.5 read in RDS files####
-###
-
-#read RDS files:
+#1.1 read RDS files:
 abundance_array <- readRDS(file = "./raw/abundance.rds")
 biomass_array <- readRDS(file = "./raw/biomass.rds")
 extinction_array <-  readRDS(file = "./raw/extinction.rds")
 troph.lvl_array <- readRDS(file = "./raw/trophic_lvl.rds")
 
 
-###
-####3 calculate EXTINCTION matrices####
-###
-
-#3.1.0 initialize selection variables
+#1.2 initialize selection variables
+#first initialize model parameters: go to  ODE-script
 slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_sub=32) 
 slct_sm <- c((n_bas+1):(n_sub+n_bas))     #selects smallest consumer species (n_sub=32) 
 slct_BAS <- c(1:n_bas)                    #selects basal species
 
-#3.1.1 calculate extinction matrices
+
+
+###
+####2 response variable matrices####
+###
+
+#2.0 sample 32 (=n_sub) random species
+
+#
+#
+#ADD!!!!!
+#
+#
+
+
+#2.1.1 calculate extinction matrices
 extinctions_mat <- apply(extinction_array, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
-  as.data.frame()  
+  as.matrix()
 
 extinctions.big_mat <- apply(extinction_array[,,slct_bi], MARGIN = c(1,2), FUN = sum) %>% 
-  as.data.frame() 
+  as.matrix() 
 extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN = sum) %>% 
-  as.data.frame() 
+  as.matrix()
 extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
-  as.data.frame() 
-
-  #apply(extinction_array, MARGIN = 3, FUN = sum) #(sum of extinctions for each species)
+  as.matrix()
 
 
-#3.1.2 transform extinction output data to .csv
+#2.1.2 sample 10 times 32 random species
+sample.int()
+
+
+#2.2 Shannon indices
+shannon_mat <-  apply(abundance_array, MARGIN = c(1,2), FUN = diversity) %>%
+  as.matrix() #whole food web
+
+shannon.big_mat <- apply(abundance_array[,,slct_bi], MARGIN = c(1,2), FUN = diversity) %>% 
+  as.matrix() 
+shannon.small_mat <- apply(abundance_array[,,slct_sm], MARGIN = c(1,2), FUN = diversity) %>% 
+  as.matrix()
+shannon.BAS_mat <- apply(abundance_array[,,slct_BAS], MARGIN = c(1,2), FUN = diversity) %>% 
+  as.matrix()
+
+#2.3 Trophic levels
+troph_mat 
+
+#2.4 sample 10 times 32 random species
+
+
+
+###
+####4 DATA table with all response variables####
+###
+
+
+#create df out with first connectance as first column, extinctions in the whole food web as second column
+data <- cbind(sort(rep(con, reps)), as.vector(extinctions_mat)) %>%
+  as.data.frame()
+colnames(data) <- c("con", "ext_all")
+  head(data)
+  
+#add extinctions in sub-foodwebs
+data <- cbind(data, 
+              as.vector(extinctions.big_mat),
+              as.vector(extinctions.small_mat),
+              as.vector(extinctions.BAS_mat))
+colnames(data)[3:ncol(data)] <- c("ext_big", "ext_small", "ext_BAS")
+
+
+#add shannon indices
+data <- cbind(data,
+              as.vector(shannon_mat),
+              as.vector(shannon.big_mat),
+              as.vector(shannon.small_mat),
+              as.vector(shannon.BAS_mat))
+colnames(data)[(ncol(data)-3):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS")
+
+head(data)
+
+
+
+####OLD####
+
+#2.2 transform extinction output data to .csv
 
 colnames(extinctions_mat) <- paste0("Connectance_",con)
 colnames(extinctions.big_mat) <- paste0("Connectance_",con)
@@ -230,13 +193,13 @@ data.ext_con <- rbind(data.ext_con, t(apply(extinctions_mat, MARGIN = 2, mean)))
 data.ext_con <- rbind(data.ext_con, t(apply(extinctions_mat, MARGIN = 2, var)))  #add variance of extinctions of n=rep iterations
 data.ext_con <- rbind(data.ext_con, t(apply(extinctions.big_mat, MARGIN = 2, mean))) #add mean no. of extinctions in biggest species
 data.ext_con <- rbind(data.ext_con, t(apply(extinctions.small_mat, MARGIN = 2, mean))) #add mean no. of extinctions in smallest species,
-    #excluding Basal species
+#excluding Basal species
 data.ext_con <- rbind(data.ext_con, t(apply(extinctions.BAS_mat, MARGIN = 2, mean))) #add mean no. of extinctions in smallest species
-    #including BASAL species
+#including BASAL species
 data.ext_con <- data.ext_con %>% #transpose and save as dataframe
   t() %>%
   as.data.frame()
-  
+
 #rename rows and columns:
 rownames(data.ext_con) <- NULL
 colnames(data.ext_con) <- c("con", "ext.m", "ext.v", "ext.big", "ext.small", "ext.BAS")
@@ -246,9 +209,9 @@ data.ext_con$rate <- data.ext_con$ext.m/n_tot
 data.ext_con$ext.big <- data.ext_con$ext.big/n_sub
 data.ext_con$ext.small <- data.ext_con$ext.small/n_sub
 data.ext_con$ext.BAS <- data.ext_con$ext.BAS/n_sub
-  
+
 data.ext_con %>% str()
-  
+
 #plot the mean extinction numbers
 ggplot(data.ext_con, aes(x = con, y=ext.m))+
   geom_point()+
@@ -293,9 +256,9 @@ ggplot(data.shan, aes(x = con, y=all) )+
   #scale_y_continuous(limits = c(0, log(n_tot)+1))+
   ylab("Shannon Index")+
   xlab("Connectance")
-  #geom_abline(intercept = log(128), slope = 0, aes(color="black"))+
-  #geom_abline(intercept = log(32), slope = 0, aes(color=F8766D))
-  
+#geom_abline(intercept = log(128), slope = 0, aes(color="black"))+
+#geom_abline(intercept = log(32), slope = 0, aes(color=F8766D))
+
 
 
 ####7 correlations between whole food web and sub food webs####  
