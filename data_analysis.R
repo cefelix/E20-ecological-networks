@@ -28,6 +28,26 @@ slct_BAS <- c(1:n_bas)                    #selects basal species
 ###
 
 #2.0 sample 32 (=n_sub) random species
+samples = 10
+rand_samples_array
+
+for (i in 1:samples){
+  sub_rand <- sample(c((n_bas+1):n_tot), n_sub) %>% #samples 32 out of the non-basal species
+    sort() %>%
+    as.vector()
+  div_rand.m <- apply(abundance_array[,,sub_rand], MARGIN = c(1,2), FUN = diversity) %>%
+    as.matrix()
+  TL_rand.m <- apply(troph.lvl_array[,,sub_rand], MARGIN = c(1,2), FUN = mean) %>%
+    as.matrix()
+  
+}
+
+#to be integrated in loop:
+
+sub_rand <- sample(c((n_bas+1):n_tot), n_sub) %>% #samples 32 out of the non-basal species
+  sort() %>%
+  as.vector()
+abundance_array[,,sub_rand]
 
 #
 #
@@ -49,7 +69,7 @@ extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN 
 
 
 #2.1.2 sample 10 times 32 random species
-sample.int()
+
 
 
 #2.2 Shannon indices
