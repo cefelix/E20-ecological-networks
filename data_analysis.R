@@ -93,7 +93,7 @@ troph_mat
 ###
 ####4 DATA table with all response variables####
 ###
-
+#test
 
 #create df out with first connectance as first column, extinctions in the whole food web as second column
 data <- cbind(sort(rep(con, reps)), as.vector(extinctions_mat)) %>%
