@@ -27,35 +27,6 @@ slct_BAS <- c(1:n_bas)                    #selects basal species
 ####2 response variable matrices####
 ###
 
-#2.0 sample 32 (=n_sub) random species
-samples = 10
-rand_samples_array
-
-for (i in 1:samples){
-  sub_rand <- sample(c((n_bas+1):n_tot), n_sub) %>% #samples 32 out of the non-basal species
-    sort() %>%
-    as.vector()
-  div_rand.m <- apply(abundance_array[,,sub_rand], MARGIN = c(1,2), FUN = diversity) %>%
-    as.matrix()
-  TL_rand.m <- apply(troph.lvl_array[,,sub_rand], MARGIN = c(1,2), FUN = mean) %>%
-    as.matrix()
-  
-}
-
-#to be integrated in loop:
-
-sub_rand <- sample(c((n_bas+1):n_tot), n_sub) %>% #samples 32 out of the non-basal species
-  sort() %>%
-  as.vector()
-abundance_array[,,sub_rand]
-
-#
-#
-#ADD!!!!!
-#
-#
-
-
 #2.1.1 calculate extinction matrices
 extinctions_mat <- apply(extinction_array, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
   as.matrix()
@@ -66,10 +37,6 @@ extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN
   as.matrix()
 extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
   as.matrix()
-
-
-#2.1.2 sample 10 times 32 random species
-
 
 
 #2.2 Shannon indices
@@ -84,10 +51,7 @@ shannon.BAS_mat <- apply(abundance_array[,,slct_BAS], MARGIN = c(1,2), FUN = div
   as.matrix()
 
 #2.3 Trophic levels
-troph_mat 
-
-#2.4 sample 10 times 32 random species
-
+troph_mat <- slct_bi
 
 
 ###
