@@ -35,23 +35,19 @@ extinctions_mat <- apply(extinction_array, MARGIN = c(1,2), FUN = sum) %>% #sum 
 extinctions.big_mat <- apply(extinction_array[,,slct_bi], MARGIN = c(1,2), FUN = sum) %>% 
   as.matrix() 
 
-#select small consumers:
 extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
+extinctions.BAS_mat <- array(NA, dim = c(reps, length(con) ))
+
 for(i in 1:reps){
   for(j in 1:length(con)) {
     bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
-    #counts basal species in each food web
+      #counts basal species in each food web
     extinctions.small_mat[i,j] <- sum(extinction_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-    #selects extinctions in the smallest consumer species
+      #selects extinctions in the smallest consumer species
+    extinctions.BAS_mat[i,j] <- sum(extinction_array[i,j, c(1:bas)])
+      #selects extinctions in the basal species
   }
 }
-
-
-
-#extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN = sum) %>% 
-  #as.matrix()
-#extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
-  #as.matrix()
 
 
 #2.2 Shannon indices
@@ -61,30 +57,51 @@ shannon.big_mat <- apply(abundance_array[,,slct_bi], MARGIN = c(1,2), FUN = dive
   as.matrix() 
 
 shannon.small_mat <- array(NA, dim = c(reps, length(con) ))
+shannon.BAS_mat <- array(NA, dim = c(reps, length(con) ))
+
 for(i in 1:reps){
   for(j in 1:length(con)) {
     bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
     #counts basal species in each food web
     shannon.small_mat[i,j] <- diversity(abundance_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-    #selects extinctions in the smallest consumer species
+      #calculates shannon index in the smallest consumer species
+    shannon.BAS_mat[i,j]   <- diversity(abundance_array[i,j, c(1:bas)])
+      #calculates shannon index in the basal species
   }
 }
 
 
-
-#extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN = sum) %>% 
-#as.matrix()
-#extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
-#as.matrix()
-
-
-shannon.small_mat <- apply(abundance_array[,,slct_sm], MARGIN = c(1,2), FUN = diversity) %>% 
-  as.matrix()
-shannon.BAS_mat <- apply(abundance_array[,,slct_BAS], MARGIN = c(1,2), FUN = diversity) %>% 
-  as.matrix()
-
 #2.3 Trophic levels
-troph_mat <- slct_bi
+  troph.max_mat <- apply(troph.lvl_array, MARGIN = c(1,2), FUN = max) %>%
+    as.matrix()
+  troph.min_mat <- apply(troph.lvl_array, MARGIN = c(1,2), FUN = min) %>%
+    as.matrix()
+  troph.var_mat <- apply(troph.lvl_array, MARGIN = c(1,2), FUN = var) %>%
+    as.matrix()
+  
+  troph.big.max_mat <- apply(troph.lvl_array[,,slct_bi], MARGIN = c(1,2), FUN = max) %>% 
+    as.matrix() 
+  troph.big.min_mat <- apply(troph.lvl_array[,,slct_bi], MARGIN = c(1,2), FUN = min) %>% 
+    as.matrix() 
+  troph.big.var_mat <- apply(troph.lvl_array[,,slct_bi], MARGIN = c(1,2), FUN = var) %>% 
+    as.matrix()
+  
+  troph.small.max_mat <- array(NA, dim = c(reps, length(con)))
+  troph.small.min_mat <- array(NA, dim = c(reps, length(con)))
+  troph.small.var_mat <- array(NA, dim = c(reps, length(con)))
+  
+for(i in 1:reps){
+  for(j in 1:length(con)) {
+    bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
+      #counts basal species in each food web
+    troph.small.max_mat[i,j] <- max(troph.lvl_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+      #selects max trophic levels in the smallest consumer species
+    troph.small.min_mat[i,j] <- min(troph.lvl_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+      #min()
+    troph.small.var_mat[i,j] <- var(troph.lvl_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+      #var()
+  }
+}  
 
 
 ###
@@ -113,9 +130,34 @@ data <- cbind(data,
               as.vector(shannon.small_mat),
               as.vector(shannon.BAS_mat))
 colnames(data)[(ncol(data)-3):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS")
+  head(data)
 
-head(data)
+#add trophic level information
+data <- cbind(data,
+               as.vector(troph.max_mat),
+               as.vector(troph.min_mat),
+               as.vector(troph.var_mat),
+               
+               as.vector(troph.big.max_mat),
+               as.vector(troph.big.min_mat),
+               as.vector(troph.big.var_mat),
+               
+               as.vector(troph.small.max_mat),
+               as.vector(troph.small.min_mat),
+               as.vector(troph.small.var_mat)
+)
 
+#add colnames
+colnames(data)[(ncol(data)-8):ncol(data)] <- c(
+  "maxTL", "minTL", "varTL",
+  "maxTL_B", "minTL_B", "varTL_B",
+  "maxTL_s", "minTL_s", "varTL_s"
+)
+
+
+
+####5 save data as .csv####
+write.csv(data, "./data/128spec.csv")
 
 
 ####OLD####
