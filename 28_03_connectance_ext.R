@@ -11,7 +11,7 @@ library(ggplot2)
 ###
 ###
 ####2.1 set up parameters and food web####
-n_bas <- 8                #no. of basal species
+#number of basal species depends on the food web!
 n_tot <- 128               #no. of all species
 
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
@@ -21,12 +21,12 @@ con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 
-reps<- 100                              #no of replicates per food web
+reps<- 1                             #no of replicates per food web
 times <- seq(1, 1e12, by = 1e9)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
-#BM <- runif(n_tot, 1, 12) %>%           #Body masses 
-  #sort()                                #realistic spanning range in soil food webs (Potapov 2021):
-#BM <- (10^BM)                           #https://pubmed.ncbi.nlm.nih.gov/34086977/
+BM <- runif(n_tot, 1, 12) %>%           #Body masses 
+  sort()                                #realistic spanning range in soil food webs (Potapov 2021):
+BM <- (10^BM)                           #https://pubmed.ncbi.nlm.nih.gov/34086977/
 ext_thresh <- 0.1**6                     #threshold below which species is considered, extinct
 
 
@@ -53,8 +53,8 @@ troph.lvl_array <- provideDimnames(troph.lvl_array, sep = "_", base = list("rep"
 
 
 #loop counters (i set them up against the alphabet because that's cooler)
-j=0
-i=0
+j=1
+i=1
 
 
 ####2.3 compute 1e10 food webs####
@@ -66,7 +66,7 @@ for (j in 1:reps) {
   
   for (i in 1:length(con)){
     fw <- create_niche_model(S = n_tot, C = con[i])
-    
+    n_bas <- sum(colSums(fw) == 0)
     
     model <- create_model_Unscaled(n_tot, n_bas, BM, fw) %>%
       initialise_default_Unscaled()
