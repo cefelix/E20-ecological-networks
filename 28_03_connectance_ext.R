@@ -12,7 +12,7 @@ library(ggplot2)
 ###
 ####2.1 set up parameters and food web####
 #number of basal species depends on the food web!
-n_tot <- 128               #no. of all species
+n_tot <- 128              #no. of all species
 
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
 n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
@@ -96,6 +96,7 @@ for (j in 1:reps) {
   print(j)
 }
 
+
 ###
 ####2.4 store output arrays into RDS file####
 ###
@@ -116,6 +117,14 @@ abundance_array <- readRDS(file = "./raw/abundance.rds")
 biomass_array <- readRDS(file = "./raw/biomass.rds")
 extinction_array <-  readRDS(file = "./raw/extinction.rds")
 troph.lvl_array <- readRDS(file = "./raw/trophic_lvl.rds")
+
+###
+####2.6 check extinctions####
+###
+for(i in 1:length(con)) {
+  sum(extinction_array[1,i,]) %>%
+    print()
+}
 
 
 ###
