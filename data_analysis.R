@@ -16,10 +16,12 @@ troph.lvl_array <- readRDS(file = "./raw/trophic_lvl.rds")
 
 
 #1.2 initialize selection variables
+
+
 #first initialize model parameters: go to  ODE-script
 slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_sub=32) 
-slct_sm <- c((n_bas+1):(n_sub+n_bas))     #selects smallest consumer species (n_sub=32) 
-slct_BAS <- c(1:n_bas)                    #selects basal species
+#slct_sm <- c((n_bas+1):(n_sub+n_bas))    #OUTDATED: selects smallest consumer species (n_sub=32) 
+#slct_BAS <- c(1:n_bas)                   #OUTDATED: selects basal species
 
 
 
@@ -30,21 +32,52 @@ slct_BAS <- c(1:n_bas)                    #selects basal species
 #2.1.1 calculate extinction matrices
 extinctions_mat <- apply(extinction_array, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
   as.matrix()
-
 extinctions.big_mat <- apply(extinction_array[,,slct_bi], MARGIN = c(1,2), FUN = sum) %>% 
   as.matrix() 
-extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN = sum) %>% 
-  as.matrix()
-extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
-  as.matrix()
+
+#select small consumers:
+extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
+for(i in 1:reps){
+  for(j in 1:length(con)) {
+    bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
+    #counts basal species in each food web
+    extinctions.small_mat[i,j] <- sum(extinction_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    #selects extinctions in the smallest consumer species
+  }
+}
+
+
+
+#extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN = sum) %>% 
+  #as.matrix()
+#extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
+  #as.matrix()
 
 
 #2.2 Shannon indices
 shannon_mat <-  apply(abundance_array, MARGIN = c(1,2), FUN = diversity) %>%
   as.matrix() #whole food web
-
 shannon.big_mat <- apply(abundance_array[,,slct_bi], MARGIN = c(1,2), FUN = diversity) %>% 
   as.matrix() 
+
+shannon.small_mat <- array(NA, dim = c(reps, length(con) ))
+for(i in 1:reps){
+  for(j in 1:length(con)) {
+    bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
+    #counts basal species in each food web
+    shannon.small_mat[i,j] <- diversity(abundance_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    #selects extinctions in the smallest consumer species
+  }
+}
+
+
+
+#extinctions.small_mat <- apply(extinction_array[,,slct_sm], MARGIN = c(1,2), FUN = sum) %>% 
+#as.matrix()
+#extinctions.BAS_mat <- apply(extinction_array[,,slct_BAS], MARGIN = c(1,2), FUN = sum) %>% 
+#as.matrix()
+
+
 shannon.small_mat <- apply(abundance_array[,,slct_sm], MARGIN = c(1,2), FUN = diversity) %>% 
   as.matrix()
 shannon.BAS_mat <- apply(abundance_array[,,slct_BAS], MARGIN = c(1,2), FUN = diversity) %>% 
