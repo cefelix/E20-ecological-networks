@@ -17,17 +17,17 @@ n_tot <- 128              #no. of all species
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
 n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
 
-con <- seq(0.05, 0.45, by = 0.025)      #connectance of the food webs 
+con <- seq(0.025, 0.05, by = 0.00125)   #connectance of the food webs 
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 
-reps<- 100                             #no of replicates per food web
+reps<- 5                                #no of replicates per food web
 times <- seq(1, 1e12, by = 1e9)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
 BM <- runif(n_tot, 1, 12) %>%           #Body masses 
   sort()                                #realistic spanning range in soil food webs (Potapov 2021):
 BM <- (10^BM)                           #https://pubmed.ncbi.nlm.nih.gov/34086977/
-ext_thresh <- 0.1**6                     #threshold below which species is considered, extinct
+ext_thresh <- 0.1**6                    #threshold below which species is considered, extinct
 
 
 ###
@@ -102,10 +102,10 @@ for (j in 1:reps) {
 ###
 
 #DANGER: this stores the results from the ODEs above 
-saveRDS(abundance_array, file = "./raw/abundance.rds")
-saveRDS(biomass_array, file = "./raw/biomass.rds")
-saveRDS(extinction_array, file = "./raw/extinction.rds")
-saveRDS(troph.lvl_array, file = "./raw/trophic_lvl.rds")
+saveRDS(abundance_array, file = "./raw/abundance_conHRs.rds")
+saveRDS(biomass_array, file = "./raw/biomass_conHR.rds")
+saveRDS(extinction_array, file = "./raw/extinction_conHR.rds")
+saveRDS(troph.lvl_array, file = "./raw/trophic_lvl_conHR.rds")
 
 
 ###

@@ -157,7 +157,7 @@ colnames(data)[(ncol(data)-8):ncol(data)] <- c(
 
 
 ####5 save data as .csv####
-write.csv(data, "./data/128spec.csv")
+write.csv(data, "./data/128spec_conHR.csv")
 
 
 ####OLD####
