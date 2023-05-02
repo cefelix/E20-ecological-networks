@@ -17,11 +17,14 @@ n_tot <- 64              #no. of all species
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
 n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
 
+set.seed(666)
 con <- seq(0.025, 0.05, by = 0.025)   #connectance of the food webs 
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
+con <- runif(2000, min=0.05, max=0.35)
+con <- sort(con)
 
-reps<- 2                                #no of replicates per food web
+reps<- 1                                #no of replicates per food web
 times <- seq(1, 1e12, by = 1e9)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
 BM <- runif(n_tot, 1, 12) %>%           #Body masses 
@@ -122,7 +125,7 @@ for (j in 1:reps) {
     #preys at end
     prey_array.end[j,i,] = colSums(fw_end)
     predators_array.end[j,i,] = rowSums(fw_end)
-    
+    print(i)
   }
   
   print(j)
@@ -134,9 +137,11 @@ for (j in 1:reps) {
 ###
 ####2.4 store output arrays into RDS file####
 ###
-output_64 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array)
-names(output_64) <- c("abundances", "biomasses", "extinctions", "troph_lvl")
-saveRDS(output_64, file = "./raw/output_64.rds")
+output_64 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array, 
+                  prey_array, prey_array.end, predators_array, predators_array.end)
+names(output_64) <- c("abundances", "biomasses", "extinctions", "troph_lvl", 
+                      "feed_on_START", "feed_on_END", "consumed_by_START", "consumed_by_END")
+saveRDS(output_64, file = "./raw/output_64_2000randoms.rds")
 
 
 ###
