@@ -17,7 +17,7 @@ n_tot <- 64              #no. of all species
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
 n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
 
-con <- seq(0.025, 0.05, by = 0.0125)   #connectance of the food webs 
+con <- seq(0.025, 0.05, by = 0.025)   #connectance of the food webs 
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 
@@ -128,14 +128,11 @@ for (j in 1:reps) {
   print(j)
 }
 
-#AND THIS HAS A BUG! (still considers extinct species)
-#links (pred/prey) at end of simulation
-prey_array.end <- prey_array * +(!extinction_array) 
-  #this first inverses the extinction array, so that a 0 means extinct and a 1 means present
-  #then the prey_array (binary, 0 and 1) gets multiplied by the inversed extinction array
-  #so each interaction which involves an extinct species gets set to zero
+#check whether prey/pred arrays worked:
+exts #extinct species
+predators_array[2,2,] == predators_array.end[2,2,] #at extinct species, this expression should be false
+summary ((exts == 0) == (predators_array[2,2,] == predators_array.end[2,2,])) #if sum == 64, everything worked well 
 
-predators_array.end <- predators_array * +(!extinction_array)
 
 
 
@@ -148,14 +145,16 @@ saveRDS(output_64, file = "./raw/output_64.rds")
 
 
 ###
-####2.5 read in RDS files####
+####2.5 read in RDS file####
 ###
 
-#read RDS files:
-abundance_array <- readRDS(file = "./raw/abundance.rds")
-biomass_array <- readRDS(file = "./raw/biomass.rds")
-extinction_array <-  readRDS(file = "./raw/extinction.rds")
-troph.lvl_array <- readRDS(file = "./raw/trophic_lvl.rds")
+output_64 <- readRDS(file = "./raw/output_64.rds")
+
+abundance_array <- output_64$abundances
+biomass_array <- output_64$biomasses
+extinction_array <- output_64$extinctions
+troph.lvl_array <- output_64$troph_lvl
+
 
 ###
 ####2.6 check extinctions####
