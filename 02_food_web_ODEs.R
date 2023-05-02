@@ -111,27 +111,22 @@ for (j in 1:reps) {
     #predators
     predators_array[j,i,] = rowSums(fw)
     
-    #preys at end
-    prey_array.end[j,i,] = colSums(fw) * (+(!exts))
-          #the second term takes the extinction vector, flips 0 for 1 and vice versa 
-          #and multiplies it by the initial sum of prey species for each concerning species
-          #this removes interactions with extinct species
-    prey_array.end[j,i,] = prey_array.end[j,i,]*(+(!exts))
-      #this deletes the species, which are extinct themselves
+   
+    #to do: shrink food web prior to rowsum/colsum calculation:
+    fw_end <- fw
+    fw_end[exts == 1,] <- 0 #all rows which contain an extinct species are set to zero
+    fw_end[,exts == 1] <- 0 #all columns which contain an extinct species are set to zero
+      sum(colSums(fw) - colSums(fw_end)) #the number of links which are lost due to the extinctions
+      sum(rowSums(fw) - rowSums(fw_end)) #equal to above -> everything fine
     
-    #predators at end
-    predators_array.end[j,i,] = rowSums(fw) * (+(!exts))
-    predators_array.end[j,i,] = predators_array.end[j,i,] * (+(!exts))
+    #preys at end
+    prey_array.end[j,i,] = colSums(fw_end)
+    predators_array.end[j,i,] = rowSums(fw_end)
     
   }
   
   print(j)
 }
-
-#check whether prey/pred arrays worked:
-exts #extinct species
-predators_array[2,2,] == predators_array.end[2,2,] #at extinct species, this expression should be false
-summary ((exts == 0) == (predators_array[2,2,] == predators_array.end[2,2,])) #if sum == 64, everything worked well 
 
 
 
