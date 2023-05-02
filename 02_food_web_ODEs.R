@@ -120,8 +120,8 @@ for (j in 1:reps) {
       #this deletes the species, which are extinct themselves
     
     #predators at end
-    predators_array[j,i,] = rowSums(fw) * (+(!exts))
-    predators_array[j,i,] = predators_array[j,i,] * (+(!exts))
+    predators_array.end[j,i,] = rowSums(fw) * (+(!exts))
+    predators_array.end[j,i,] = predators_array.end[j,i,] * (+(!exts))
     
   }
   
@@ -142,12 +142,9 @@ predators_array.end <- predators_array * +(!extinction_array)
 ###
 ####2.4 store output arrays into RDS file####
 ###
-
-#DANGER: this stores the results from the ODEs above 
-saveRDS(abundance_array, file = "./raw/abundance_conHRs.rds")
-saveRDS(biomass_array, file = "./raw/biomass_conHR.rds")
-saveRDS(extinction_array, file = "./raw/extinction_conHR.rds")
-saveRDS(troph.lvl_array, file = "./raw/trophic_lvl_conHR.rds")
+output_64 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array)
+names(output_64) <- c("abundances", "biomasses", "extinctions", "troph_lvl")
+saveRDS(output_64, file = "./raw/output_64.rds")
 
 
 ###
