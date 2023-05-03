@@ -26,6 +26,7 @@ plot(d$con, d$shan_all)
   plot(d$shan_small, d$shan_all)
 plot(d$con, d$shan_big)
 plot(d$con, d$shan_small)
+
 plot(d$con, d$shan_rand)
 
 plot(d$con, d$shan_BAS)
