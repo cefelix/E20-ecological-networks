@@ -38,9 +38,9 @@ slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_s
 ###
 
 #2.1.1 calculate extinction matrices
-extinctions_mat <- apply(extinction_array, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
+extinctions_mat <- apply(extinctions, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
   as.matrix()
-extinctions.big_mat <- apply(extinction_array[,,slct_bi], MARGIN = c(1,2), FUN = sum) %>% 
+extinctions.big_mat <- apply(extinctions[,,slct_bi], MARGIN = c(1,2), FUN = sum) %>% 
   as.matrix() 
 
 extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
@@ -48,20 +48,20 @@ extinctions.BAS_mat <- array(NA, dim = c(reps, length(con) ))
 
 for(i in 1:reps){
   for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
+    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
       #counts basal species in each food web
-    extinctions.small_mat[i,j] <- sum(extinction_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    extinctions.small_mat[i,j] <- sum(extinctions[i,j, c((bas+1):(bas+perc_sub*n_tot))])
       #selects extinctions in the smallest consumer species
-    extinctions.BAS_mat[i,j] <- sum(extinction_array[i,j, c(1:bas)])
+    extinctions.BAS_mat[i,j] <- sum(extinctions[i,j, c(1:bas)])
       #selects extinctions in the basal species
   }
 }
 
 
 #2.2 Shannon indices
-shannon_mat <-  apply(abundance_array, MARGIN = c(1,2), FUN = diversity) %>%
+shannon_mat <-  apply(abundances, MARGIN = c(1,2), FUN = diversity) %>%
   as.matrix() #whole food web
-shannon.big_mat <- apply(abundance_array[,,slct_bi], MARGIN = c(1,2), FUN = diversity) %>% 
+shannon.big_mat <- apply(abundances[,,slct_bi], MARGIN = c(1,2), FUN = diversity) %>% 
   as.matrix() 
 
 shannon.small_mat <- array(NA, dim = c(reps, length(con) ))
@@ -69,29 +69,29 @@ shannon.BAS_mat <- array(NA, dim = c(reps, length(con) ))
 
 for(i in 1:reps){
   for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
+    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
     #counts basal species in each food web
-    shannon.small_mat[i,j] <- diversity(abundance_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    shannon.small_mat[i,j] <- diversity(abundances[i,j, c((bas+1):(bas+perc_sub*n_tot))])
       #calculates shannon index in the smallest consumer species
-    shannon.BAS_mat[i,j]   <- diversity(abundance_array[i,j, c(1:bas)])
+    shannon.BAS_mat[i,j]   <- diversity(abundances[i,j, c(1:bas)])
       #calculates shannon index in the basal species
   }
 }
 
 
 #2.3 Trophic levels
-  troph.max_mat <- apply(troph.lvl_array, MARGIN = c(1,2), FUN = max) %>%
+  troph.max_mat <- apply(troph.lvl, MARGIN = c(1,2), FUN = max) %>%
     as.matrix()
-  troph.min_mat <- apply(troph.lvl_array, MARGIN = c(1,2), FUN = min) %>%
+  troph.min_mat <- apply(troph.lvl, MARGIN = c(1,2), FUN = min) %>%
     as.matrix()
-  troph.var_mat <- apply(troph.lvl_array, MARGIN = c(1,2), FUN = var) %>%
+  troph.var_mat <- apply(troph.lvl, MARGIN = c(1,2), FUN = var) %>%
     as.matrix()
   
-  troph.big.max_mat <- apply(troph.lvl_array[,,slct_bi], MARGIN = c(1,2), FUN = max) %>% 
+  troph.big.max_mat <- apply(troph.lvl[,,slct_bi], MARGIN = c(1,2), FUN = max) %>% 
     as.matrix() 
-  troph.big.min_mat <- apply(troph.lvl_array[,,slct_bi], MARGIN = c(1,2), FUN = min) %>% 
+  troph.big.min_mat <- apply(troph.lvl[,,slct_bi], MARGIN = c(1,2), FUN = min) %>% 
     as.matrix() 
-  troph.big.var_mat <- apply(troph.lvl_array[,,slct_bi], MARGIN = c(1,2), FUN = var) %>% 
+  troph.big.var_mat <- apply(troph.lvl[,,slct_bi], MARGIN = c(1,2), FUN = var) %>% 
     as.matrix()
   
   troph.small.max_mat <- array(NA, dim = c(reps, length(con)))
@@ -100,13 +100,13 @@ for(i in 1:reps){
   
 for(i in 1:reps){
   for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl_array[i,j,] > 1) 
+    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
       #counts basal species in each food web
-    troph.small.max_mat[i,j] <- max(troph.lvl_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    troph.small.max_mat[i,j] <- max(troph.lvl[i,j, c((bas+1):(bas+perc_sub*n_tot))])
       #selects max trophic levels in the smallest consumer species
-    troph.small.min_mat[i,j] <- min(troph.lvl_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    troph.small.min_mat[i,j] <- min(troph.lvl[i,j, c((bas+1):(bas+perc_sub*n_tot))])
       #min()
-    troph.small.var_mat[i,j] <- var(troph.lvl_array[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    troph.small.var_mat[i,j] <- var(troph.lvl[i,j, c((bas+1):(bas+perc_sub*n_tot))])
       #var()
   }
 }  
@@ -165,7 +165,7 @@ colnames(data)[(ncol(data)-8):ncol(data)] <- c(
 
 
 ####5 save data as .csv####
-write.csv(data, "./data/128spec_conHR.csv")
+write.csv(data, "./data/64spec_2000randoms.csv")
 
 
 ####OLD####
@@ -192,10 +192,10 @@ write.csv(shannon_mat, "./real/shannon_mat128.csv")
 
 ####3.8 transform extinction output to relevant subset data frames
 
-extinction_array <- biomass_array
-extinction_array[extinction_array <= ext_thresh] <- 1
-extinction_array[extinction_array > ext_thresh] <- 0
-summary(extinction_array) #not working yet
+extinctions <- biomasses
+extinctions[extinctions <= ext_thresh] <- 1
+extinctions[extinctions > ext_thresh] <- 0
+summary(extinctions) #not working yet
 
 
 
@@ -203,18 +203,18 @@ summary(extinction_array) #not working yet
 ####
 ####4.1 create subset foodwebs' abundance arrays####
 
-abundance_array.BAS <- abundance_array[1:reps, 1:length(con), 1:n_bas]
-abundance_array.small <- abundance_array[1:reps, 1:length(con), (n_bas+1):(n_bas+n_sub)]
-abundance_array.big <- abundance_array[1:reps, 1:length(con), (n_tot-n_sub+1):n_tot]
+abundances.BAS <- abundances[1:reps, 1:length(con), 1:n_bas]
+abundances.small <- abundances[1:reps, 1:length(con), (n_bas+1):(n_bas+n_sub)]
+abundances.big <- abundances[1:reps, 1:length(con), (n_tot-n_sub+1):n_tot]
 
 ####4.2 apply vegan::diversity over each abundance array, store output in .csv####
-Sindex_all <- apply(abundance_array, MARGIN = c(1,2), FUN = diversity) %>%
+Sindex_all <- apply(abundances, MARGIN = c(1,2), FUN = diversity) %>%
   as.data.frame()
-Sindex_BAS <- apply(abundance_array.BAS, MARGIN = c(1,2), FUN = diversity) %>%
+Sindex_BAS <- apply(abundances.BAS, MARGIN = c(1,2), FUN = diversity) %>%
   as.data.frame()
-Sindex_big <- apply(abundance_array.small, MARGIN = c(1,2), FUN = diversity) %>%
+Sindex_big <- apply(abundances.small, MARGIN = c(1,2), FUN = diversity) %>%
   as.data.frame()
-Sindex_small <- apply(abundance_array.big, MARGIN = c(1,2), FUN = diversity) %>%
+Sindex_small <- apply(abundances.big, MARGIN = c(1,2), FUN = diversity) %>%
   as.data.frame()
 
 #write as csv:
@@ -241,7 +241,7 @@ extinctions_mat <- read.csv("./extinctions128all.csv")[,-1]
 
 #"rep", "con", "spec"
 for (k in 1:length(con)) {
-  abuns_small = abundance_array[, con, (n_bas+1):(n_bas+n_sub)]
+  abuns_small = abundances[, con, (n_bas+1):(n_bas+n_sub)]
   apply(abuns_small, MARGIN = 1,diversity )
 }
 
