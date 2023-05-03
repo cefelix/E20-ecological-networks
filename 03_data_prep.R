@@ -38,6 +38,8 @@ slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_s
 ### 
 
 #2.1 initializing output arrays
+n.bas_mat <- array(NA, dim = c(reps, length(con) ))
+
 extinctions_mat <- apply(extinctions, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
   as.matrix()
 extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
@@ -60,8 +62,8 @@ for(i in 1:reps){
     
     bas <- n_tot - sum(troph.lvl[i,j,] > 1)         # a vector of all basal species
     consumers <- c((bas+1):n_tot)                   # a vector of all consumer species
-    slct_rand <- sample(consumers, size = n_sub)     # a random selection of consumer species
-    
+    slct_rand <- sample(consumers, size = n_sub)    # a random selection of consumer species
+    n.bas_mat[i,j] <- bas                           # the number of basal species in the system
     
    
     extinctions.small_mat[i,j] <- sum(extinctions[i,j, c((bas+1):(bas+perc_sub*n_tot))])
@@ -133,11 +135,12 @@ colnames(data) <- c("con", "ext_all")
   
 #add extinctions in sub-foodwebs
 data <- cbind(data, 
+              as.vector(n.bas_mat),
               as.vector(extinctions.big_mat),
               as.vector(extinctions.small_mat),
               as.vector(extinctions.BAS_mat),
               as.vector(extinctions.rand_mat))
-colnames(data)[3:ncol(data)] <- c("ext_big", "ext_small", "ext_BAS", "ext_rand")
+colnames(data)[3:ncol(data)] <- c("n_basal" ,"ext_big", "ext_small", "ext_BAS", "ext_rand")
 
 
 #add shannon indices

@@ -12,13 +12,14 @@ library(ggplot2)
 ###
 ####2.1 set up parameters and food web####
 #number of basal species depends on the food web!
-n_tot <- 64              #no. of all species
+n_tot <- 96            #no. of all species
 
+#perc_sub <- seq(1/16, 1/4, by=1/32)  
 perc_sub <- 0.25          #share of the species present in sub-food webs (float between 0 and 1)
 n_sub <- perc_sub*n_tot   #no. of species in a sub-foodweb
 
 set.seed(666)
-con <- seq(0.025, 0.05, by = 0.025)   #connectance of the food webs 
+#con <- seq(0.025, 0.05, by = 0.025)   #connectance of the food webs 
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
 con <- runif(2000, min=0.05, max=0.35)
@@ -75,15 +76,20 @@ i=1
 
 
 ####2.3 compute 1e10 food webs####
-for (j in 1:reps) {
-  BM <- runif(n_tot, 1, 12) %>% #body masses of the species
-    sort()
-  BM <- (10^BM)
-  i=0
-  
   for (i in 1:length(con)){
+    
+    BM <- runif(n_tot, 1, 12) %>% #body masses of the species
+      sort()
+    BM <- (10^BM)
+    
     fw <- create_niche_model(S = n_tot, C = con[i])
     n_bas <- sum(colSums(fw) == 0)
+    
+    while (n_bas > 16 | n_bas < 4) { #if fw has less than 4 or more than 16 basal species, repeat
+      fw <- create_niche_model(S = n_tot, C = con[i])
+      n_bas <- sum(colSums(fw) == 0)
+    }
+  
     
     model <- create_model_Unscaled(n_tot, n_bas, BM, fw) %>%
       initialise_default_Unscaled()
@@ -128,8 +134,6 @@ for (j in 1:reps) {
     print(i)
   }
   
-  print(j)
-}
 
 
 
