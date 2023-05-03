@@ -35,48 +35,56 @@ slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_s
 
 ###
 ####2 response variable matrices####
-###
+### 
 
-#2.1.1 calculate extinction matrices
+#2.1 initializing output arrays
 extinctions_mat <- apply(extinctions, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
   as.matrix()
-extinctions.big_mat <- apply(extinctions[,,slct_bi], MARGIN = c(1,2), FUN = sum) %>% 
-  as.matrix() 
-
 extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
 extinctions.BAS_mat <- array(NA, dim = c(reps, length(con) ))
-
-for(i in 1:reps){
-  for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
-      #counts basal species in each food web
-    extinctions.small_mat[i,j] <- sum(extinctions[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-      #selects extinctions in the smallest consumer species
-    extinctions.BAS_mat[i,j] <- sum(extinctions[i,j, c(1:bas)])
-      #selects extinctions in the basal species
-  }
-}
+extinctions.big_mat <- array(NA, dim = c(reps, length(con) ))
+extinctions.rand_mat <- array(NA, dim = c(reps, length(con) ))
 
 
-#2.2 Shannon indices
 shannon_mat <-  apply(abundances, MARGIN = c(1,2), FUN = diversity) %>%
   as.matrix() #whole food web
-shannon.big_mat <- apply(abundances[,,slct_bi], MARGIN = c(1,2), FUN = diversity) %>% 
-  as.matrix() 
-
 shannon.small_mat <- array(NA, dim = c(reps, length(con) ))
 shannon.BAS_mat <- array(NA, dim = c(reps, length(con) ))
+shannon.big_mat <- array(NA, dim = c(reps, length(con) ))
+shannon.rand_mat <- array(NA, dim = c(reps, length(con) )) 
 
+
+#2.2 calculating extinctions and shannon indices
 for(i in 1:reps){
   for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
-    #counts basal species in each food web
+    
+    bas <- n_tot - sum(troph.lvl[i,j,] > 1)         # a vector of all basal species
+    consumers <- c((bas+1):n_tot)                   # a vector of all consumer species
+    slct_rand <- sample(consumers, size = n_sub)     # a random selection of consumer species
+    
+    
+   
+    extinctions.small_mat[i,j] <- sum(extinctions[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+      # selects extinctions in the smallest consumer species
+    extinctions.BAS_mat[i,j] <- sum(extinctions[i,j, c(1:bas)])
+      # selects extinctions in the basal species
+    extinctions.big_mat[i,j] <- sum(extinctions[i,j, slct_bi])
+      # extinctions in the biggest consumer species
+    extinctions.rand_mat[i,j] <- sum(extinctions[i,j, slct_rand]) 
+      # extinctions in a random selection of consumer species
+    
+    
     shannon.small_mat[i,j] <- diversity(abundances[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-      #calculates shannon index in the smallest consumer species
+      # calculates shannon index in the smallest consumer species
     shannon.BAS_mat[i,j]   <- diversity(abundances[i,j, c(1:bas)])
-      #calculates shannon index in the basal species
+      # calculates shannon index in the basal species
+    shannon.big_mat[i,j] <- diversity(abundances[i,j, slct_bi])
+      # shannon index in the biggest consumer species
+    shannon.rand_mat[i,j] <- diversity((abundances[i,j, slct_rand]))
   }
 }
+
+
 
 
 #2.3 Trophic levels
@@ -127,8 +135,9 @@ colnames(data) <- c("con", "ext_all")
 data <- cbind(data, 
               as.vector(extinctions.big_mat),
               as.vector(extinctions.small_mat),
-              as.vector(extinctions.BAS_mat))
-colnames(data)[3:ncol(data)] <- c("ext_big", "ext_small", "ext_BAS")
+              as.vector(extinctions.BAS_mat),
+              as.vector(extinctions.rand_mat))
+colnames(data)[3:ncol(data)] <- c("ext_big", "ext_small", "ext_BAS", "ext_rand")
 
 
 #add shannon indices
@@ -136,8 +145,9 @@ data <- cbind(data,
               as.vector(shannon_mat),
               as.vector(shannon.big_mat),
               as.vector(shannon.small_mat),
-              as.vector(shannon.BAS_mat))
-colnames(data)[(ncol(data)-3):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS")
+              as.vector(shannon.BAS_mat),
+              as.vector(shannon.rand_mat))
+colnames(data)[(ncol(data)-4):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS", "shan_rand")
   head(data)
 
 #add trophic level information
