@@ -35,7 +35,8 @@ slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_s
 
 ###
 ####2 response variable matrices####
-###
+### 
+
 
 #2.1.1 calculate extinction matrices
 extinctions_mat <- apply(extinctions, MARGIN = c(1,2), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
@@ -45,6 +46,8 @@ extinctions.big_mat <- apply(extinctions[,,slct_bi], MARGIN = c(1,2), FUN = sum)
 
 extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
 extinctions.BAS_mat <- array(NA, dim = c(reps, length(con) ))
+extinctions.big_mat <- array(NA, dim = c(reps, length(con) ))
+extinctions.rand_mat <- array(NA, dim = c(reps, length(con) ))
 
 for(i in 1:reps){
   for(j in 1:length(con)) {
@@ -54,6 +57,12 @@ for(i in 1:reps){
       #selects extinctions in the smallest consumer species
     extinctions.BAS_mat[i,j] <- sum(extinctions[i,j, c(1:bas)])
       #selects extinctions in the basal species
+    extinctions.big_mat[i,j] <- sum(extinctions[i,j, slct_bi])
+      #extinctions in the biggest consumer species
+    
+    consumers <- c((bas+1):n_tot)                   # a vector of all consumer species
+    rand_sub <- sample(consumers, size = n_sub)     # a random selection of n_sub consumer species
+    extinctions.rand_mat[i,j] <- sum(extinctions[i,j, rand_sub]) #
   }
 }
 
@@ -66,6 +75,7 @@ shannon.big_mat <- apply(abundances[,,slct_bi], MARGIN = c(1,2), FUN = diversity
 
 shannon.small_mat <- array(NA, dim = c(reps, length(con) ))
 shannon.BAS_mat <- array(NA, dim = c(reps, length(con) ))
+shannon.big_mat <- array(NA, dim = c(reps, length(con) ))
 
 for(i in 1:reps){
   for(j in 1:length(con)) {
@@ -75,6 +85,7 @@ for(i in 1:reps){
       #calculates shannon index in the smallest consumer species
     shannon.BAS_mat[i,j]   <- diversity(abundances[i,j, c(1:bas)])
       #calculates shannon index in the basal species
+    shannon.big_mat[i,j] <- diversity(abundances[i,j, slct_bi])
   }
 }
 
