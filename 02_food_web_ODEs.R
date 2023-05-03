@@ -141,11 +141,11 @@ i=1
 ###
 ####2.4 store output arrays into RDS file####
 ###
-output_64 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array, 
+output_96 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array, 
                   prey_array, prey_array.end, predators_array, predators_array.end)
-names(output_64) <- c("abundances", "biomasses", "extinctions", "troph_lvl", 
+names(output_96) <- c("abundances", "biomasses", "extinctions", "troph_lvl", 
                       "feed_on_START", "feed_on_END", "consumed_by_START", "consumed_by_END")
-saveRDS(output_64, file = "./raw/output_64_2000randoms.rds")
+saveRDS(output_96, file = "./raw/output_96_2000randoms.rds")
 
 
 ###
