@@ -43,24 +43,8 @@ extinctions_mat <- apply(extinctions, MARGIN = c(1,2), FUN = sum) %>% #sum of ex
 extinctions.small_mat <- array(NA, dim = c(reps, length(con) ))
 extinctions.BAS_mat <- array(NA, dim = c(reps, length(con) ))
 extinctions.big_mat <- array(NA, dim = c(reps, length(con) ))
-extinctions.rand_mat <- array(NA, dim = c(reps, length(con) ))
 
-for(i in 1:reps){
-  for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
-      #counts basal species in each food web
-    extinctions.small_mat[i,j] <- sum(extinctions[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-      #selects extinctions in the smallest consumer species
-    extinctions.BAS_mat[i,j] <- sum(extinctions[i,j, c(1:bas)])
-      #selects extinctions in the basal species
-    extinctions.big_mat[i,j] <- sum(extinctions[i,j, slct_bi])
-      #extinctions in the biggest consumer species
-    
-    consumers <- c((bas+1):n_tot)                   # a vector of all consumer species
-    rand_sub <- sample(consumers, size = n_sub)     # a random selection of n_sub consumer species
-    extinctions.rand_mat[i,j] <- sum(extinctions[i,j, rand_sub]) #
-  }
-}
+
 
 
 shannon_mat <-  apply(abundances, MARGIN = c(1,2), FUN = diversity) %>%
@@ -68,42 +52,62 @@ shannon_mat <-  apply(abundances, MARGIN = c(1,2), FUN = diversity) %>%
 shannon.small_mat <- array(NA, dim = c(reps, length(con) ))
 shannon.BAS_mat <- array(NA, dim = c(reps, length(con) ))
 shannon.big_mat <- array(NA, dim = c(reps, length(con) ))
-shannon.rand_mat <- array(NA, dim = c(reps, length(con) )) 
+
+
+rand_select <- seq(from = 1.5*n_sub, to = 4, by=-4) #the sample size for the random selections
+  shannon.rand_mat        <- array(NA, dim = c(reps, length(con), length(rand_select) )) 
+  extinctions.rand_mat    <- array(NA, dim = c(reps, length(con), length(rand_select) ))
 
 
 #2.2 calculating extinctions and shannon indices
+
+slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_sub=32) 
+slct_sm <- c()
+slct_rand 
+
+
+  
 for(i in 1:reps){
   for(j in 1:length(con)) {
     
-    bas <- n_tot - sum(troph.lvl[i,j,] > 1)         # a vector of all basal species
-    consumers <- c((bas+1):n_tot)                   # a vector of all consumer species
-    slct_rand <- sample(consumers, size = n_sub)    # a random selection of consumer species
-    n.bas_mat[i,j] <- bas                           # the number of basal species in the system
+    bas <- n_tot - sum(troph.lvl[i,j,] > 1)             # the amount of basal species
+    consumers <- c((bas+1):n_tot)                       # a vector of all consumer species
+    n.bas_mat[i,j] <- bas                               # the number of basal species in the system
     
-   
-    extinctions.small_mat[i,j] <- sum(extinctions[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+    slct_sm <- consumers[1:n_sub]                       # the smallest consumer species
+    slct_bi <- c((n_tot-n_sub+1):n_tot)                 # the biggest consumer species
+    
+    
+  #extinctions in 24 species
+    extinctions.small_mat[i,j] <- sum(extinctions[i,j, slct_sm])
       # selects extinctions in the smallest consumer species
     extinctions.BAS_mat[i,j] <- sum(extinctions[i,j, c(1:bas)])
       # selects extinctions in the basal species
     extinctions.big_mat[i,j] <- sum(extinctions[i,j, slct_bi])
       # extinctions in the biggest consumer species
-    extinctions.rand_mat[i,j] <- sum(extinctions[i,j, slct_rand]) 
-      # extinctions in a random selection of consumer species
-    
-    
-    shannon.small_mat[i,j] <- diversity(abundances[i,j, c((bas+1):(bas+perc_sub*n_tot))])
+
+  #diversity in 24 species
+    shannon.small_mat[i,j] <- diversity(abundances[i,j, slct_sm])
       # calculates shannon index in the smallest consumer species
     shannon.BAS_mat[i,j]   <- diversity(abundances[i,j, c(1:bas)])
-
       # calculates shannon index in the basal species
     shannon.big_mat[i,j] <- diversity(abundances[i,j, slct_bi])
       # shannon index in the biggest consumer species
-    shannon.rand_mat[i,j] <- diversity((abundances[i,j, slct_rand]))
-
+    
+    
+    for (k in 1:length(rand_select)) {
+      slct_rand <- sample(consumers, size = rand_select[k]) %>%    # a random selection of consumer species
+        sort()
+      
+      extinctions.rand_mat[i,j,k] <- sum(extinctions[i,j, slct_rand]) 
+      shannon.rand_mat[i,j,k] <- diversity((abundances[i,j, slct_rand]))
+    }
+    
+    
   }
 }
 
-
+extinctions.rand_mat[,1,1:9]
 
 ###
 ####4 DATA table with all response variables####
@@ -121,9 +125,8 @@ data <- cbind(data,
               as.vector(n.bas_mat),
               as.vector(extinctions.big_mat),
               as.vector(extinctions.small_mat),
-              as.vector(extinctions.BAS_mat),
-              as.vector(extinctions.rand_mat))
-colnames(data)[3:ncol(data)] <- c("n_basal" ,"ext_big", "ext_small", "ext_BAS", "ext_rand")
+              as.vector(extinctions.BAS_mat))
+colnames(data)[3:ncol(data)] <- c("n_basal" ,"ext_big", "ext_small", "ext_BAS")
 
 
 #add shannon indices
@@ -131,15 +134,32 @@ data <- cbind(data,
               as.vector(shannon_mat),
               as.vector(shannon.big_mat),
               as.vector(shannon.small_mat),
-              as.vector(shannon.BAS_mat),
-              as.vector(shannon.rand_mat))
-colnames(data)[(ncol(data)-4):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS", "shan_rand")
+              as.vector(shannon.BAS_mat))
+colnames(data)[(ncol(data)-3):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS")
   head(data)
 
+#add randomly drawn shannon samples
+  for (i in 1:length(rand_select)) {
+    new <- shannon.rand_mat[1,,i] %>% as.vector()
+    data[,ncol(data)+ 1 ] <- new
+    colnames(data)[ncol(data)] <- c(paste("rand_shan", rand_select[i], sep = "_"))
+  }
+  
+#add randomly drawn extinction samples
+  for (i in 1:length(rand_select)) {
+    new <- extinctions.rand_mat[1,,i] %>% as.vector()
+    data[,ncol(data)+ 1 ] <- new
+    colnames(data)[ncol(data)] <- c(paste("rand_ext", rand_select[i], sep = "_"))
+  }
 
-
+  
+####5 - quick check on correlation####  
+cor(data$ext_all, data$rand_ext_16)  
+cor(data$ext_all, data$ext_big)
+cor(data$ext_all, data$ext_small)
+  
 ####5 save data as .csv####
-write.csv(data, "./data/96spec_2000randoms_v2.csv")
+write.csv(data, "./data/20230504_96spec_v01.csv")
 
 
   
