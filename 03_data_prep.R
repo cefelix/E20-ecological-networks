@@ -28,9 +28,6 @@ d.list <- readRDS("./raw/output_96_2000randoms.rds")
 
 #first initialize model parameters: go to  ODE-script
 slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_sub=32) 
-#slct_sm <- c((n_bas+1):(n_sub+n_bas))    #OUTDATED: selects smallest consumer species (n_sub=32) 
-#slct_BAS <- c(1:n_bas)                   #OUTDATED: selects basal species
-
 
 
 ###
@@ -108,40 +105,6 @@ for(i in 1:reps){
 
 
 
-
-#2.3 Trophic levels
-  troph.max_mat <- apply(troph.lvl, MARGIN = c(1,2), FUN = max) %>%
-    as.matrix()
-  troph.min_mat <- apply(troph.lvl, MARGIN = c(1,2), FUN = min) %>%
-    as.matrix()
-  troph.var_mat <- apply(troph.lvl, MARGIN = c(1,2), FUN = var) %>%
-    as.matrix()
-  
-  troph.big.max_mat <- apply(troph.lvl[,,slct_bi], MARGIN = c(1,2), FUN = max) %>% 
-    as.matrix() 
-  troph.big.min_mat <- apply(troph.lvl[,,slct_bi], MARGIN = c(1,2), FUN = min) %>% 
-    as.matrix() 
-  troph.big.var_mat <- apply(troph.lvl[,,slct_bi], MARGIN = c(1,2), FUN = var) %>% 
-    as.matrix()
-  
-  troph.small.max_mat <- array(NA, dim = c(reps, length(con)))
-  troph.small.min_mat <- array(NA, dim = c(reps, length(con)))
-  troph.small.var_mat <- array(NA, dim = c(reps, length(con)))
-  
-for(i in 1:reps){
-  for(j in 1:length(con)) {
-    bas <- n_tot - sum(troph.lvl[i,j,] > 1) 
-      #counts basal species in each food web
-    troph.small.max_mat[i,j] <- max(troph.lvl[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-      #selects max trophic levels in the smallest consumer species
-    troph.small.min_mat[i,j] <- min(troph.lvl[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-      #min()
-    troph.small.var_mat[i,j] <- var(troph.lvl[i,j, c((bas+1):(bas+perc_sub*n_tot))])
-      #var()
-  }
-}  
-
-
 ###
 ####4 DATA table with all response variables####
 ###
@@ -173,35 +136,16 @@ data <- cbind(data,
 colnames(data)[(ncol(data)-4):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS", "shan_rand")
   head(data)
 
-#add trophic level information
-data <- cbind(data,
-               as.vector(troph.max_mat),
-               as.vector(troph.min_mat),
-               as.vector(troph.var_mat),
-               
-               as.vector(troph.big.max_mat),
-               as.vector(troph.big.min_mat),
-               as.vector(troph.big.var_mat),
-               
-               as.vector(troph.small.max_mat),
-               as.vector(troph.small.min_mat),
-               as.vector(troph.small.var_mat)
-)
-
-#add colnames
-colnames(data)[(ncol(data)-8):ncol(data)] <- c(
-  "maxTL", "minTL", "varTL",
-  "maxTL_B", "minTL_B", "varTL_B",
-  "maxTL_s", "minTL_s", "varTL_s"
-)
-
 
 
 ####5 save data as .csv####
-write.csv(data, "./data/96spec_2000randoms.csv")
+write.csv(data, "./data/96spec_2000randoms_v2.csv")
 
 
-####666####
+  
+  
+  
+####Crap to go####
 NULL
 #actually,lets create a second set of points in the plots above
 
