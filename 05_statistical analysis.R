@@ -1,7 +1,7 @@
 #statistical analysis
 library(ATNr)
 
-data <- read.csv("./data/64spec_2000randoms.csv")[,-1] #drops first column which is rownumber
+data <- read.csv("./data/96spec_2000randoms.csv")[,-1] #drops first column which is rownumber
 d <- data
 
 d_real <- subset(d, d$con <= 0.30)
@@ -26,6 +26,11 @@ plot(d$con, d$shan_all)
   plot(d$shan_small, d$shan_all)
 plot(d$con, d$shan_big)
 plot(d$con, d$shan_small)
+
+
+plot(d$shan_all, d$ext_all)
+plot(d$shan_all, d$con)
+plot(d$con, d$shan_all)
 
 plot(d$con, d$shan_rand)
 
