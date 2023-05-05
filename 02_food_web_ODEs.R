@@ -1,5 +1,4 @@
 ####0.0 libraries####
-#test
 
 library(ATNr)
 library(dplyr)
@@ -22,10 +21,9 @@ set.seed(666)
 #con <- seq(0.025, 0.05, by = 0.025)   #connectance of the food webs 
                                         #check out https://www.pnas.org/doi/epdf/10.1073/pnas.192407699
                                         #mininmal connectance 0.026, maximal 0.315 (from 17 empirical food webs, fig.1)
-con <- runif(2000, min=0.05, max=0.35)
+con <- runif(15, min=0.05, max=0.35)
 con <- sort(con)
 
-reps<- 1                                #no of replicates per food web
 times <- seq(1, 1e12, by = 1e9)         #time for integration of dynamics
 biom <- runif(n_tot, 1, 4)              #initial biomasses
 BM <- runif(n_tot, 1, 12) %>%           #Body masses 
@@ -39,36 +37,36 @@ ext_thresh <- 0.1**6                    #threshold below which species is consid
 ###
 
 #output arrays: abundances (= densities)
-abundance_array <- array(dim = c(reps,length(con), n_tot))
-abundance_array <- provideDimnames(abundance_array, sep = "_", base = list("rep", "con", "spec"))
+abundance_array <- array(dim = c(length(con), n_tot))
+abundance_array <- provideDimnames(abundance_array, sep = "_", base = list( "con", "spec"))
 
 #biomasses
-biomass_array <- array(dim = c(reps,length(con), n_tot))
-biomass_array <- provideDimnames(biomass_array, sep = "_", base = list("rep", "con", "spec"))
+biomass_array <- array(dim = c(length(con), n_tot))
+biomass_array <- provideDimnames(biomass_array, sep = "_", base = list( "con", "spec"))
 
 #extinctions
-extinction_array <- array(dim = c(reps,length(con), n_tot))
-extinction_array <- provideDimnames(extinction_array, sep = "_", base = list("rep", "con", "spec"))
+extinction_array <- array(dim = c(length(con), n_tot))
+extinction_array <- provideDimnames(extinction_array, sep = "_", base = list( "con", "spec"))
 
 #trophic level
-troph.lvl_array <- array(dim = c(reps,length(con), n_tot))
-troph.lvl_array <- provideDimnames(troph.lvl_array, sep = "_", base = list("rep", "con", "spec"))
+troph.lvl_array <- array(dim = c(length(con), n_tot))
+troph.lvl_array <- provideDimnames(troph.lvl_array, sep = "_", base = list( "con", "spec"))
 
 #prey at start (for each species)
-prey_array <- array(dim = c(reps,length(con), n_tot))
-prey_array <- provideDimnames(prey_array, sep = "_", base = list("rep", "con", "spec"))
+prey_array <- array(dim = c(length(con), n_tot))
+prey_array <- provideDimnames(prey_array, sep = "_", base = list( "con", "spec"))
 
 #predators at start
-predators_array <- array(dim = c(reps,length(con), n_tot))
-predators_array <- provideDimnames(predators_array, sep = "_", base = list("rep", "con", "spec"))
+predators_array <- array(dim = c(length(con), n_tot))
+predators_array <- provideDimnames(predators_array, sep = "_", base = list( "con", "spec"))
 
 #prey at end
-prey_array.end <- array(dim = c(reps,length(con), n_tot))
-prey_array.end <- provideDimnames(prey_array.end, sep = "_", base = list("rep", "con", "spec"))
+prey_array.end <- array(dim = c(length(con), n_tot))
+prey_array.end <- provideDimnames(prey_array.end, sep = "_", base = list( "con", "spec"))
 
 #predators at end
-predators_array.end <- array(dim = c(reps,length(con), n_tot))
-predators_array.end <- provideDimnames(predators_array.end, sep = "_", base = list("rep", "con", "spec"))
+predators_array.end <- array(dim = c(length(con), n_tot))
+predators_array.end <- provideDimnames(predators_array.end, sep = "_", base = list( "con", "spec"))
 
 #loop counters (i set them up against the alphabet because that's cooler)
 j=1
@@ -100,25 +98,25 @@ i=1
     
     #storing abundances in the abundance array
     abuns = sol[nrow(sol),-1] / BM
-    abundance_array[j,i,] = abuns
+    abundance_array[i,] = abuns
     
     #final biomasses
     bioms = sol[nrow(sol),-1]
-    biomass_array[j,i,] = bioms
+    biomass_array[i,] = bioms
     
     #extinctions
     exts = sol[nrow(sol), -1]
     exts = ifelse(exts <= model$ext, yes = 1, no = 0) #accordingly, 1 means species is extinct!
-    extinction_array[j,i,] = exts
+    extinction_array[i,] = exts
     
     #trophic levels 
-    troph.lvl_array[j,i,] = TroLev(fw)
+    troph.lvl_array[i,] = TroLev(fw)
     
     #preys
-    prey_array[j,i,] = colSums(fw)
+    prey_array[i,] = colSums(fw)
     
     #predators
-    predators_array[j,i,] = rowSums(fw)
+    predators_array[i,] = rowSums(fw)
     
    
     #to do: shrink food web prior to rowsum/colsum calculation:
@@ -129,8 +127,8 @@ i=1
       sum(rowSums(fw) - rowSums(fw_end)) #equal to above -> everything fine
     
     #preys at end
-    prey_array.end[j,i,] = colSums(fw_end)
-    predators_array.end[j,i,] = rowSums(fw_end)
+    prey_array.end[i,] = colSums(fw_end)
+    predators_array.end[i,] = rowSums(fw_end)
     print(i)
   }
   
@@ -145,7 +143,7 @@ output_96 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_ar
                   prey_array, prey_array.end, predators_array, predators_array.end)
 names(output_96) <- c("abundances", "biomasses", "extinctions", "troph_lvl", 
                       "feed_on_START", "feed_on_END", "consumed_by_START", "consumed_by_END")
-saveRDS(output_96, file = "./raw/output_96_2000randoms.rds")
+saveRDS(output_96, file = "./raw/20220505_96spec_15cons_v01.rds")
 
 
 ###
