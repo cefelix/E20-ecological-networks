@@ -83,7 +83,7 @@ i=1
     fw <- create_niche_model(S = n_tot, C = con[i])
     n_bas <- sum(colSums(fw) == 0)
     
-    while (n_bas > 16 | n_bas < 4) { #if fw has less than 4 or more than 16 basal species, repeat
+    while (n_bas > 12 | n_bas < 4) { #if fw has less than 4 or more than 16 basal species, repeat
       fw <- create_niche_model(S = n_tot, C = con[i])
       n_bas <- sum(colSums(fw) == 0)
     }

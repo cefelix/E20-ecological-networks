@@ -12,7 +12,7 @@ library(ggplot2)
 ####2.1 set up parameters and food web####
 
 n_tot <- 96                             #no. of all species
-n_sub <- 0.25*n_sub                     #no. of species in a sub-foodweb
+n_sub <- 0.25*n_tot                     #no. of species in a sub-foodweb
 
 set.seed(666)                           
 con <- runif(2000, min=0.05, max=0.35) 
@@ -73,7 +73,7 @@ for (i in 1:length(con)){
   fw <- create_niche_model(S = n_tot, C = con[i])
   n_bas <- sum(colSums(fw) == 0)
   
-  while (n_bas > 16 | n_bas < 4) { #if fw has less than 4 or more than 16 basal species, repeat
+  while (n_bas > 12 | n_bas < 4) { #if fw has less than 4 or more than 16 basal species, repeat
     fw <- create_niche_model(S = n_tot, C = con[i])
     n_bas <- sum(colSums(fw) == 0)
   }
@@ -133,7 +133,7 @@ output_96 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_ar
                   prey_array, prey_array.end, predators_array, predators_array.end)
 names(output_96) <- c("abundances", "biomasses", "extinctions", "troph_lvl", 
                       "feed_on_START", "feed_on_END", "consumed_by_START", "consumed_by_END")
-saveRDS(output_96, file = "./raw/20220505_96spec_15cons_v01.rds")
+saveRDS(output_96, file = "./raw/20220506_96spec_2000c_04to12bas_v01.rds")
 
 
 
