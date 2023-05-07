@@ -9,7 +9,8 @@ library(ggplot2)
 ###
 
 #1.1.1 read RDS list
-d.list <- readRDS("./raw/20220505_96spec_15cons_v01.rds")
+list.files("./raw")
+d.list <- readRDS("./raw/20220506_96spec_2000c_04to12bas_v01.rds")
 
 
   abundances <- d.list$abundances
@@ -106,23 +107,24 @@ slct_sm <- c()
     
     #random selection of species, but from different trophic levels
     for (k in 1:length(rand_select)) {
-      slct_rand <- sample(x = consumers[troph.lvl[j,consumers] < quantile(troph.lvl[j,consumers], 0.25)], #lowest 25% of Trophic levels (consumers)
-                          size = rand_select[k]/4) 
+      slct_rand <- sample(x = consumers[troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.25)], #lowest 25% of Trophic levels (consumers)
+                        size = rand_select[k]/4)
+      
       
       slct_rand <- c(slct_rand, 
-                     sample(consumers[(troph.lvl[j,consumers] > quantile(troph.lvl[j,consumers], 0.25)) &
-                                      (troph.lvl[j,consumers] < quantile(troph.lvl[j,consumers], 0.50))],
+                     sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.25)) &
+                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.50))],
                           size = rand_select[k]/4))
       
       slct_rand <- c(slct_rand, 
-                     sample(consumers[(troph.lvl[j,consumers] > quantile(troph.lvl[j,consumers], 0.50)) &
-                                      (troph.lvl[j,consumers] < quantile(troph.lvl[j,consumers], 0.75))],
+                     sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.50)) &
+                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.75))],
                             size = rand_select[k]/4))
       
-      slct_rand <- c(slct_rand, 
-                     sample(consumers[(troph.lvl[j,consumers] > quantile(troph.lvl[j,consumers], 0.75))],
+     slct_rand <- c(slct_rand, 
+                     sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.75))],
                             size = rand_select[k]/4))
-      
+  
       
       extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) #each 
       shannon.rand_matTL[j,k] <- diversity((abundances[j, slct_rand]))
