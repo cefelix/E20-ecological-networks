@@ -87,7 +87,7 @@ i=1
       sort()
     BM <- (10^BM) #Body masses, spanning 12 orders of magnitude
     
-    model <- create_model_Unscaled(n_tot, n_bas, BM, fw) #%>%
+    model <- create_model_Unscaled(n_tot, n_bas, BM, fw) %>%
       initialise_default_Unscaled()
 
     model$ext <- ext_thresh
@@ -95,39 +95,39 @@ i=1
     #solve ode's
     sol = lsoda_wrapper(times, biom, model)
     
-    #storing abundances in the abundance array
-    abuns = sol[nrow(sol),-1] / BM
-    abundance_array[i,] = abuns
+    #calculating output variables
+    bioms = sol[nrow(sol),-1]                           #final biomasses
+    abuns = bioms / BM                                  #final abundances
+    exts = ifelse(bioms <= model$ext, yes = 1, no = 0)  #extinctions
+    trolev =  TroLev(fw)                                #trophic levels
+    prey.on_start = colSums(fw)                         #trophic links: species is predator
+    consumed.by_start = rowSums(fw)                     #trophic links: species is consumed 
     
-    #final biomasses
-    bioms = sol[nrow(sol),-1]
-    biomass_array[i,] = bioms
-    
-    #extinctions
-    exts = sol[nrow(sol), -1]
-    exts = ifelse(exts <= model$ext, yes = 1, no = 0) #accordingly, 1 means species is extinct!
+    #storing them in arrays
+    biomass_array[i,] = bioms #final biomasses
+    abundance_array[i,] = abuns #abundances
     extinction_array[i,] = exts
-    
-    #trophic levels 
-    troph.lvl_array[i,] = TroLev(fw)
-    
-    #preys
-    prey_array[i,] = colSums(fw)
-    
-    #predators
-    predators_array[i,] = rowSums(fw)
+    troph.lvl_array[i,] = trolev
+    prey_array[i,] = prey_links #number of prey species for each species
+    predators_array[i,] = pred_links #number of predator species for each species
     
    
-    #to do: shrink food web prior to rowsum/colsum calculation:
+    #exclude interaction with extinct species from adjacency matrix
     fw_end <- fw
-    fw_end[exts == 1,] <- 0 #all rows which contain an extinct species are set to zero
-    fw_end[,exts == 1] <- 0 #all columns which contain an extinct species are set to zero
-      sum(colSums(fw) - colSums(fw_end)) #the number of links which are lost due to the extinctions
-      sum(rowSums(fw) - rowSums(fw_end)) #equal to above -> everything fine
+      fw_end[exts == 1,] <- 0 #all rows which contain an extinct species are set to zero
+      fw_end[,exts == 1] <- 0 #all columns which contain an extinct species are set to zero
+        sum(colSums(fw) - colSums(fw_end)) #the number of links which are lost due to the extinctions
+        sum(rowSums(fw) - rowSums(fw_end)) #equal to above -> everything fine
     
-    #preys at end
-    prey_array.end[i,] = colSums(fw_end)
-    predators_array.end[i,] = rowSums(fw_end)
+    #calculate number of trophic links at and of simulation    
+    prey.on_start = colSums(fw)                       
+    consumed.by_start = rowSums(fw) 
+    
+    #storing them in arrays 
+    prey_array.end[i,] = prey.on_start
+    predators_array.end[i,] = consumed.by_start
+    
+    #count iterations
     print(i)
   }
   
