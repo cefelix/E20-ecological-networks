@@ -36,36 +36,36 @@ ext_thresh <- 0.1**6                    #threshold below which species is consid
 ###
 
 #output arrays: abundances (= densities)
-abundance_array <- array(dim = c(length(con), n_tot))
-abundance_array <- provideDimnames(abundance_array, sep = "_", base = list( "con", "spec"))
+abundances <- array(dim = c(length(con), n_tot))
+abundances <- provideDimnames(abundances, sep = "_", base = list( "con", "spec"))
 
 #biomasses
-biomass_array <- array(dim = c(length(con), n_tot))
-biomass_array <- provideDimnames(biomass_array, sep = "_", base = list( "con", "spec"))
+biomasses <- array(dim = c(length(con), n_tot))
+biomasses <- provideDimnames(biomasses, sep = "_", base = list( "con", "spec"))
 
 #extinctions
-extinction_array <- array(dim = c(length(con), n_tot))
-extinction_array <- provideDimnames(extinction_array, sep = "_", base = list( "con", "spec"))
+extinctions <- array(dim = c(length(con), n_tot))
+extinctions <- provideDimnames(extinctions, sep = "_", base = list( "con", "spec"))
 
 #trophic level
-troph.lvl_array <- array(dim = c(length(con), n_tot))
-troph.lvl_array <- provideDimnames(troph.lvl_array, sep = "_", base = list( "con", "spec"))
+troph.lvl <- array(dim = c(length(con), n_tot))
+troph.lvl <- provideDimnames(troph.lvl, sep = "_", base = list( "con", "spec"))
 
 #prey at start (for each species)
-prey_array <- array(dim = c(length(con), n_tot))
-prey_array <- provideDimnames(prey_array, sep = "_", base = list( "con", "spec"))
+prey_on_START <- array(dim = c(length(con), n_tot))
+prey_on_START <- provideDimnames(prey_on_START, sep = "_", base = list( "con", "spec"))
 
 #predators at start
-predators_array <- array(dim = c(length(con), n_tot))
-predators_array <- provideDimnames(predators_array, sep = "_", base = list( "con", "spec"))
+consumed_by_START <- array(dim = c(length(con), n_tot))
+consumed_by_START <- provideDimnames(consumed_by_START, sep = "_", base = list( "con", "spec"))
 
 #prey at end
-prey_array.end <- array(dim = c(length(con), n_tot))
-prey_array.end <- provideDimnames(prey_array.end, sep = "_", base = list( "con", "spec"))
+prey_on_END <- array(dim = c(length(con), n_tot))
+prey_on_END <- provideDimnames(prey_on_END, sep = "_", base = list( "con", "spec"))
 
 #predators at end
-predators_array.end <- array(dim = c(length(con), n_tot))
-predators_array.end <- provideDimnames(predators_array.end, sep = "_", base = list( "con", "spec"))
+consumed_by_END <- array(dim = c(length(con), n_tot))
+consumed_by_END <- provideDimnames(consumed_by_END, sep = "_", base = list( "con", "spec"))
 
 #loop counters (i set them up against the alphabet because that's cooler)
 j=1
@@ -104,12 +104,12 @@ i=1
     consumed.by_start = rowSums(fw)                     #trophic links: species is consumed 
     
     #storing them in arrays
-    biomass_array[i,] = bioms #final biomasses
-    abundance_array[i,] = abuns #abundances
-    extinction_array[i,] = exts
-    troph.lvl_array[i,] = trolev
-    prey_array[i,] = prey_links #number of prey species for each species
-    predators_array[i,] = pred_links #number of predator species for each species
+    biomasses[i,] = bioms #final biomasses
+    abundances[i,] = abuns #abundances
+    extinctions[i,] = exts
+    troph.lvl[i,] = trolev
+    prey_on_START[i,] = prey_links #number of prey species for each species
+    consumed_by_START[i,] = pred_links #number of predator species for each species
     
    
     #exclude interaction with extinct species from adjacency matrix
@@ -124,8 +124,8 @@ i=1
     consumed.by_start = rowSums(fw) 
     
     #storing them in arrays 
-    prey_array.end[i,] = prey.on_start
-    predators_array.end[i,] = consumed.by_start
+    prey_on_END[i,] = prey.on_start
+    consumed_by_END[i,] = consumed.by_start
     
     #count iterations
     print(i)
@@ -138,10 +138,10 @@ i=1
 ###
 ####2.4 store output arrays into RDS file####
 ###
-output_96 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array, 
-                  prey_array, prey_array.end, predators_array, predators_array.end)
+output_96 <- list(abundances, biomasses, extinctions, troph.lvl, 
+                  prey_on_START, prey_on_END, consumed_by_START, consumed_by_END)
 names(output_96) <- c("abundances", "biomasses", "extinctions", "troph_lvl", 
-                      "feed_on_START", "feed_on_END", "consumed_by_START", "consumed_by_END")
+                      "prey_on_START", "prey_on_END", "consumed_by_START", "consumed_by_END")
 
 saveRDS(output_96, file = "./raw/20220508_96spec_2000c_v01.rds")
 
@@ -153,17 +153,17 @@ saveRDS(output_96, file = "./raw/20220508_96spec_2000c_v01.rds")
 
 output_64 <- readRDS(file = "./raw/output_64.rds")
 
-abundance_array <- output_64$abundances
-biomass_array <- output_64$biomasses
-extinction_array <- output_64$extinctions
-troph.lvl_array <- output_64$troph_lvl
+abundances <- output_64$abundances
+biomasses <- output_64$biomasses
+extinctions <- output_64$extinctions
+troph.lvl <- output_64$troph_lvl
 
 
 ###
 ####2.6 check extinctions####
 ###
 for(i in 1:length(con)) {
-  sum(extinction_array[1,i,]) %>%
+  sum(extinctions[1,i,]) %>%
     print()
 }
 
