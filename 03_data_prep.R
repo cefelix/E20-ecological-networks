@@ -18,8 +18,8 @@ d.list <- readRDS("./raw/20220506_96spec_2000c_04to12bas_v01.rds")
   extinctions <- d.list$extinctions
   troph.lvl <- d.list$troph_lvl
   
-  food_START <- d.list$feed_on_START
-  food_END <- d.list$feed_on_END
+  food_START <- d.list$prey_on_START
+  food_END <- d.list$prey_on_END
   consumed_bySTART <- d.list$consumed_by_START
   consumed_byEND <- d.list$consumed_by_END
 
@@ -55,7 +55,7 @@ shannon.BAS_mat <- array(NA, dim = c( length(con) ))
 shannon.big_mat <- array(NA, dim = c( length(con) ))
 
 
-rand_select <- seq(from = 1.5*n_sub, to = 4, by=-4) #the sample size for the random selections
+rand_select <- seq(from = 36, to = 4, by=-4) #the sample sizes for the random selections
   shannon.rand_mat        <- array(NA, dim = c( length(con), length(rand_select) )) #randomly selected 
   extinctions.rand_mat    <- array(NA, dim = c( length(con), length(rand_select) ))
   
@@ -72,7 +72,7 @@ slct_sm <- c()
   for(j in 1:length(con)) {
     
     bas <- n_tot - sum(troph.lvl[j,] > 1)             # the amount of basal species
-    consumers <- c((bas+1):n_tot)                       # a vector of all consumer species
+    consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
     n.bas_mat[j] <- bas                               # the number of basal species in the system
     
     slct_sm <- consumers[1:n_sub]                       # the smallest consumer species
@@ -96,41 +96,51 @@ slct_sm <- c()
       # shannon index in the biggest consumer species
     
     
-    #random selection of species
-    for (k in 1:length(rand_select)) {
-      slct_rand <- sample(consumers, size = rand_select[k]) %>%       # a random selection of consumer species
-        sort()
-      
-      extinctions.rand_mat[j,k] <- sum(extinctions[j, slct_rand])     # sum of extinctions at con=j for k selections of random species
-      shannon.rand_mat[j,k] <- diversity((abundances[j, slct_rand]))  #shannon index at con=j
-    }
     
-    #random selection of species, but from different trophic levels
-    for (k in 1:length(rand_select)) {
-      slct_rand <- sample(x = consumers[troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.25)], #lowest 25% of Trophic levels (consumers)
-                        size = rand_select[k]/4)
-      
-      
-      slct_rand <- c(slct_rand, 
-                     sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.25)) &
-                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.50))],
-                          size = rand_select[k]/4))
-      
-      slct_rand <- c(slct_rand, 
-                     sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.50)) &
-                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.75))],
-                            size = rand_select[k]/4))
-      
-     slct_rand <- c(slct_rand, 
-                     sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.75))],
-                            size = rand_select[k]/4))
-  
-      
-      extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) #each 
-      shannon.rand_matTL[j,k] <- diversity((abundances[j, slct_rand]))
-    }
     
   }
+
+
+for (j  in 1:length(con)) {
+  bas <- n_tot - sum(troph.lvl[j,] > 1)             # the amount of basal species
+  consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
+  n.bas_mat[j] <- bas
+  
+  #random selection of species
+  for (k in 1:length(rand_select)) {
+    slct_rand <- sample(consumers, size = rand_select[k]) %>%       # a random selection of consumer species
+      sort()
+    
+    extinctions.rand_mat[j,k] <- sum(extinctions[j, slct_rand])     # sum of extinctions at con=j for k selections of random species
+    shannon.rand_mat[j,k] <- diversity((abundances[j, slct_rand]))  #shannon index at con=j
+  }
+  
+  #random selection of species, but from different trophic levels
+  for (k in 1:length(rand_select)) {
+    slct_rand <- sample(x = consumers[troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.25)], #lowest 25% of Trophic levels (consumers)
+                        size = rand_select[k]/4)
+    
+    
+    slct_rand <- c(slct_rand, 
+                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.25)) &
+                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.50))],
+                          size = rand_select[k]/4))
+    
+    slct_rand <- c(slct_rand, 
+                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.50)) &
+                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.75))],
+                          size = rand_select[k]/4))
+    
+    slct_rand <- c(slct_rand, 
+                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.75))],
+                          size = rand_select[k]/4))
+    
+    
+    extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) #each 
+    shannon.rand_matTL[j,k] <- diversity((abundances[j, slct_rand]))
+  }
+  
+}
 
 
 extinctions.rand_mat[1,1:9]
@@ -210,7 +220,7 @@ cor(data$ext_all, data$ext_big)
 cor(data$ext_all, data$ext_small)
 
 ####5 save data as .csv####
-write.csv(data, "./data/20220505_96spec_15cons_v01.csv")
+write.csv(data, "./data/20220506_96spec_2000c_04to12bas_v01.csv")
 
 
   
