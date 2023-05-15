@@ -36,63 +36,46 @@ slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_s
 ### 
 
 #2.1 initializing output arrays
-n.bas_mat <- array(NA, dim = c( length(con) ))
+extinctions_vec <- apply(extinctions, MARGIN = c(1), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
+  as.vector()
+  extinctions.small_vec   <- rep(NA, length(con))
+  extinctions.BAS_vec     <- rep(NA, length(con))
+  extinctions.big_vec     <- rep(NA, length(con))
 
-
-extinctions_mat <- apply(extinctions, MARGIN = c(1), FUN = sum) %>% #sum of extinctions for each connectance/replicate combination
-  as.matrix()
-extinctions.small_mat <- array(NA, dim = c( length(con) ))
-extinctions.BAS_mat <- array(NA, dim = c( length(con) ))
-extinctions.big_mat <- array(NA, dim = c( length(con) ))
-
-
-
-
-shannon_mat <-  apply(abundances, MARGIN = c(1), FUN = diversity) %>%
-  as.matrix() #whole food web
-shannon.small_mat <- array(NA, dim = c( length(con) ))
-shannon.BAS_mat <- array(NA, dim = c( length(con) ))
-shannon.big_mat <- array(NA, dim = c( length(con) ))
-
-
-rand_select <- seq(from = 36, to = 4, by=-4) #the sample sizes for the random selections
-  shannon.rand_mat        <- array(NA, dim = c( length(con), length(rand_select) )) #randomly selected 
-  extinctions.rand_mat    <- array(NA, dim = c( length(con), length(rand_select) ))
+shannon_vec <-  apply(abundances, MARGIN = c(1), FUN = diversity) %>%
+  as.vector() #whole food web
+  shannon.small_vec   <- rep(NA, length(con))
+  shannon.BAS_vec     <- rep(NA, length(con))
+  shannon.big_vec     <- rep(NA, length(con))
   
-  shannon.rand_matTL      <- array(NA, dim = c( length(con), length(rand_select) )) #randomly selected, but from different trophic levels
-  extinctions.rand_matTL  <- array(NA, dim = c( length(con), length(rand_select) ))
+n.bas_vec <- rep(NA, length(con))  
 
 
 #2.2 calculating extinctions and shannon indices
-
-slct_bi <- c((n_tot-n_sub+1):n_tot)       #selects biggest consumer species (n_sub=32) 
-slct_sm <- c()
-
-
   for(j in 1:length(con)) {
     
     bas <- n_tot - sum(troph.lvl[j,] > 1)             # the amount of basal species
     consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
-    n.bas_mat[j] <- bas                               # the number of basal species in the system
+    n.bas_vec[j] <- bas                               # the number of basal species in the system
     
     slct_sm <- consumers[1:n_sub]                       # the smallest consumer species
     slct_bi <- c((n_tot-n_sub+1):n_tot)                 # the biggest consumer species
     
     
   #extinctions in 24 species
-    extinctions.small_mat[j] <- sum(extinctions[j, slct_sm])
+    extinctions.small_vec[j] <- sum(extinctions[j, slct_sm])
       # selects extinctions in the smallest consumer species
-    extinctions.BAS_mat[j] <- sum(extinctions[j, c(1:bas)])
+    extinctions.BAS_vec[j] <- sum(extinctions[j, c(1:bas)])
       # selects extinctions in the basal species
-    extinctions.big_mat[j] <- sum(extinctions[j, slct_bi])
+    extinctions.big_vec[j] <- sum(extinctions[j, slct_bi])
       # extinctions in the biggest consumer species
 
   #diversity in 24 species
-    shannon.small_mat[j] <- diversity(abundances[j, slct_sm])
+    shannon.small_vec[j] <- diversity(abundances[j, slct_sm])
       # calculates shannon index in the smallest consumer species
-    shannon.BAS_mat[j]   <- diversity(abundances[j, c(1:bas)])
+    shannon.BAS_vec[j]   <- diversity(abundances[j, c(1:bas)])
       # calculates shannon index in the basal species
-    shannon.big_mat[j] <- diversity(abundances[j, slct_bi])
+    shannon.big_vec[j] <- diversity(abundances[j, slct_bi])
       # shannon index in the biggest consumer species
     
     
@@ -101,14 +84,23 @@ slct_sm <- c()
   }
 
 
+#output for random selection
+
+sample_size <- seq(from = 36, to = 4, by=-4) #the sample sizes for the random selections
+shannon.rand_mat        <- array(NA, dim = c( length(con), length(sample_size) )) #randomly selected 
+extinctions.rand_mat    <- array(NA, dim = c( length(con), length(sample_size) ))
+
+shannon.rand_matTL      <- array(NA, dim = c( length(con), length(sample_size) )) #randomly selected, but from different trophic levels
+extinctions.rand_matTL  <- array(NA, dim = c( length(con), length(sample_size) ))
+
 for (j  in 1:length(con)) {
   bas <- n_tot - sum(troph.lvl[j,] > 1)             # the amount of basal species
   consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
-  n.bas_mat[j] <- bas
+  n.bas_vec[j] <- bas
   
   #random selection of species
-  for (k in 1:length(rand_select)) {
-    slct_rand <- sample(consumers, size = rand_select[k]) %>%       # a random selection of consumer species
+  for (k in 1:length(sample_size)) {
+    slct_rand <- sample(consumers, size = sample_size[k]) %>%       # a random selection of consumer species
       sort()
     
     extinctions.rand_mat[j,k] <- sum(extinctions[j, slct_rand])     # sum of extinctions at con=j for k selections of random species
@@ -116,24 +108,24 @@ for (j  in 1:length(con)) {
   }
   
   #random selection of species, but from different trophic levels
-  for (k in 1:length(rand_select)) {
+  for (k in 1:length(sample_size)) {
     slct_rand <- sample(x = consumers[troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.25)], #lowest 25% of Trophic levels (consumers)
-                        size = rand_select[k]/4)
+                        size = sample_size[k]/4)
     
     
     slct_rand <- c(slct_rand, 
                    sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.25)) &
                                       (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.50))],
-                          size = rand_select[k]/4))
+                          size = sample_size[k]/4))
     
     slct_rand <- c(slct_rand, 
                    sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.50)) &
                                       (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.75))],
-                          size = rand_select[k]/4))
+                          size = sample_size[k]/4))
     
     slct_rand <- c(slct_rand, 
                    sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.75))],
-                          size = rand_select[k]/4))
+                          size = sample_size[k]/4))
     
     
     extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) #each 
@@ -152,57 +144,57 @@ extinctions.rand_mat[1,1:9]
 
 
 #create df out with first connectance as first column, extinctions in the whole food web as second column
-data <- cbind(con, as.vector(extinctions_mat)) %>%
+data <- cbind(con, extinctions_vec) %>%
   as.data.frame()
 colnames(data) <- c("con", "ext_all")
   head(data)
   
 #add extinctions in sub-foodwebs
-data <- cbind(data, 
-              as.vector(n.bas_mat),
-              as.vector(extinctions.big_mat),
-              as.vector(extinctions.small_mat),
-              as.vector(extinctions.BAS_mat))
+data <- cbind(data,
+              n.bas_vec,
+              extinctions.big_vec,
+              extinctions.small_vec,
+              extinctions.BAS_vec)
 colnames(data)[3:ncol(data)] <- c("n_basal" ,"ext_big", "ext_small", "ext_BAS")
 
 
 #add shannon indices
 data <- cbind(data,
-              as.vector(shannon_mat),
-              as.vector(shannon.big_mat),
-              as.vector(shannon.small_mat),
-              as.vector(shannon.BAS_mat))
+              shannon_vec,
+              shannon.big_vec,
+              shannon.small_vec,
+              shannon.BAS_vec)
 colnames(data)[(ncol(data)-3):ncol(data)] <- c("shan_all", "shan_big", "shan_small", "shan_BAS")
   head(data)
 
     
 #add randomly drawn shannon samples
-  for (i in 1:length(rand_select)) {
+  for (i in 1:length(sample_size)) {
     new <- shannon.rand_mat[,i] %>% as.vector()
     data[,ncol(data)+ 1 ] <- new
-    colnames(data)[ncol(data)] <- c(paste("rand_shan", rand_select[i], sep = "_"))
+    colnames(data)[ncol(data)] <- c(paste("rand_shan", sample_size[i], sep = "_"))
   }
   
 #add randomly drawn extinction samples
-  for (i in 1:length(rand_select)) {
+  for (i in 1:length(sample_size)) {
     new <- extinctions.rand_mat[,i] %>% as.vector()
     data[,ncol(data)+ 1 ] <- new
-    colnames(data)[ncol(data)] <- c(paste("rand_ext", rand_select[i], sep = "_"))
+    colnames(data)[ncol(data)] <- c(paste("rand_ext", sample_size[i], sep = "_"))
   }
   
 #add randomly drawn TL considering shannon samples
-  for (i in 1:length(rand_select)) {
+  for (i in 1:length(sample_size)) {
     new <- shannon.rand_matTL[,i] %>% as.vector()
     data[,ncol(data)+ 1 ] <- new
-    colnames(data)[ncol(data)] <- c(paste("rand_shanTL", rand_select[i], sep = "_"))
+    colnames(data)[ncol(data)] <- c(paste("rand_shanTL", sample_size[i], sep = "_"))
   }
   
   
 #add randomly drawn TL considering extinction samples
-  for (i in 1:length(rand_select)) {
+  for (i in 1:length(sample_size)) {
     new <- extinctions.rand_matTL[,i] %>% as.vector()
     data[,ncol(data)+ 1 ] <- new
-    colnames(data)[ncol(data)] <- c(paste("rand_extTL", rand_select[i], sep = "_"))
+    colnames(data)[ncol(data)] <- c(paste("rand_extTL", sample_size[i], sep = "_"))
   }
 
   
