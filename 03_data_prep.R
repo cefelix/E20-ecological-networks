@@ -58,8 +58,8 @@ n.bas_vec <- rep(NA, length(con))
     consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
     n.bas_vec[j] <- bas                               # the number of basal species in the system
     
-    slct_sm <- consumers[1:n_sub]                       # the smallest consumer species
-    slct_bi <- c((n_tot-n_sub+1):n_tot)                 # the biggest consumer species
+    slct_sm <- consumers[1:n_sub]                     # the smallest consumer species
+    slct_bi <- c((n_tot-n_sub+1):n_tot)               # the biggest consumer species
     
     
   #extinctions in 24 species
@@ -94,48 +94,49 @@ shannon.rand_matTL      <- array(NA, dim = c( length(con), length(sample_size) )
 extinctions.rand_matTL  <- array(NA, dim = c( length(con), length(sample_size) ))
 
 for (j  in 1:length(con)) {
-  bas <- n_tot - sum(troph.lvl[j,] > 1)             # the amount of basal species
-  consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
+  bas <- n_tot - sum(troph.lvl[j,] > 1)       # the number of basal species
+  consumers <- c((bas+1):n_tot)               # a vector of all consumer species
   n.bas_vec[j] <- bas
   
-  #random selection of species
+  #random selection of species:
   for (k in 1:length(sample_size)) {
-    slct_rand <- sample(consumers, size = sample_size[k]) %>%       # a random selection of consumer species
-      sort()
+    slct_rand <- sample(consumers, size = sample_size[k]) %>%
+      sort() # a random selection of consumer species
     
-    extinctions.rand_mat[j,k] <- sum(extinctions[j, slct_rand])     # sum of extinctions at con=j for k selections of random species
-    shannon.rand_mat[j,k] <- diversity((abundances[j, slct_rand]))  #shannon index at con=j
+    extinctions.rand_mat[j,k] <- sum(extinctions[j, slct_rand])     
+      # sum of extinctions at con=j for k selections of random species
+    shannon.rand_mat[j,k] <- diversity((abundances[j, slct_rand]))  
+      #shannon index at con=j
   }
   
-  #random selection of species, but from different trophic levels
+  #random selection of species, but from different trophic levels:
+  TL_c <- troph.lvl[j,consumers] 
+  
   for (k in 1:length(sample_size)) {
-    slct_rand <- sample(x = consumers[troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.25)], #lowest 25% of Trophic levels (consumers)
-                        size = sample_size[k]/4)
     
+    slct_rand <-  sample(consumers[TL_c <= quantile(TL_c, 0.25)],
+                          size = sample_size[k]/4)
     
     slct_rand <- c(slct_rand, 
-                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.25)) &
-                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.50))],
+                   sample(consumers[TL_c >= quantile(TL_c, 0.25) &
+                                    TL_c <= quantile(TL_c, 0.5)],
                           size = sample_size[k]/4))
     
     slct_rand <- c(slct_rand, 
-                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.50)) &
-                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.75))],
+                   sample(consumers[TL_c >= quantile(TL_c, 0.5) &
+                                    TL_c <= quantile(TL_c, 0.75)],
                           size = sample_size[k]/4))
     
     slct_rand <- c(slct_rand, 
-                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.75))],
+                   sample(consumers[TL_c >= quantile(TL_c, 0.75)],
                           size = sample_size[k]/4))
-    
     
     extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) #each 
     shannon.rand_matTL[j,k] <- diversity((abundances[j, slct_rand]))
   }
-  
+  print(j)
 }
 
-
-extinctions.rand_mat[1,1:9]
 
 ###
 ####4 DATA table with all response variables####
@@ -212,7 +213,7 @@ cor(data$ext_all, data$ext_big)
 cor(data$ext_all, data$ext_small)
 
 ####5 save data as .csv####
-write.csv(data, "./data/20220506_96spec_2000c_04to12bas_v01.csv")
+write.csv(data, "./data/20220506_96spec_2000c_04to12bas_v02.csv")
 
 
   
