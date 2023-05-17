@@ -177,47 +177,48 @@ for (j  in 1:length(con)) {
 
 ### 2.6 Sampling from sub-food webs: random species selection, but forcing variation in trophic levels
 
-Lastly, I sampled 4 to 36 random consumer species from each food web, but this time restricting the random selection to span several trophic levels. One quarter of the sampled species had to be from the highest quartile of trophic levels, one quarter from the second quartile, one from the third quartile and one from the lowest quartile (generally, this was excluding basal species). The general approach was similar to chapter 2.5 with the only difference being the setup of the random selection vector `slct_rand`. 
+Lastly, I sampled 4 to 36 random consumer species from each food web, but this time restricting the random selection to span several trophic levels. To achieve this, `slct_rand` was set up differently: For each food web, I extracted the trophic levels of the consumer species by first accessing `troph.lvl[j,consumers]` and then storing the output in `TL_c`. Afterwards I sampled randomly from each quarter of consumer species (sorted by their trophic levels): I compared `TL_c` with its quartiles`quantile()` and subset the `consumers` vector correspondingly, and then stored the sampled consumer species' indices in `slct_rand`. Finally, I calculated extinctions and shannon indices similarly as in chapter 2.4 and 2.5 and stored in the respective arrays `extinctions.rand_matTL` and `shannon.rand_matT`.
 
-The first quarter of elements of `select_rand` was filled by subsetting the `consumers` vector to 
 
 ``` r
 shannon.rand_matTL      <- array(NA, dim = c( length(con), length(sample_size) )) 
 extinctions.rand_matTL  <- array(NA, dim = c( length(con), length(sample_size) ))
 
 for (j  in 1:length(con)) {
-  bas <- n_tot - sum(troph.lvl[j,] > 1)             
-  consumers <- c((bas+1):n_tot)
+  bas <- n_tot - sum(troph.lvl[j,] > 1)       # the number of basal species
+  consumers <- c((bas+1):n_tot)               # a vector of all consumers
+  TL_c <- troph.lvl[j,consumers]              # trophic level of each consumer 
   
   for (k in 1:length(sample_size)) {
     
-    slct_rand <- sample(x = consumers[
-      troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.25)], 
-                        size = sample_size[k]/4)
-    
+    slct_rand <-  sample(consumers[TL_c <= quantile(TL_c, 0.25)],
+                          size = sample_size[k]/4)
     
     slct_rand <- c(slct_rand, 
-                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.25)) &
-                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.50))],
+                   sample(consumers[TL_c >= quantile(TL_c, 0.25) &
+                                    TL_c <= quantile(TL_c, 0.5)],
                           size = sample_size[k]/4))
     
     slct_rand <- c(slct_rand, 
-                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.50)) &
-                                      (troph.lvl[j,consumers] <= quantile(troph.lvl[j,consumers], 0.75))],
+                   sample(consumers[TL_c >= quantile(TL_c, 0.5) &
+                                    TL_c <= quantile(TL_c, 0.75)],
                           size = sample_size[k]/4))
     
     slct_rand <- c(slct_rand, 
-                   sample(consumers[(troph.lvl[j,consumers] >= quantile(troph.lvl[j,consumers], 0.75))],
+                   sample(consumers[TL_c >= quantile(TL_c, 0.75)],
                           size = sample_size[k]/4))
     
-    
-    extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) #each 
+    extinctions.rand_matTL[j,k] <- sum(extinctions[j, slct_rand]) 
     shannon.rand_matTL[j,k] <- diversity((abundances[j, slct_rand]))
   }
 }
 ```
 
 ### 2.7 Statistical analysis
+
+## Results
+
+sa
 
 ## Discussion
 
