@@ -1,8 +1,13 @@
 ---
----
+title: "How well does a subset of a food web describe the entire food web?"
+author: "Felix Zeh"
+date: "2023-05-17"
+output: html_document
 ---
 
-# Title:How does a selection of species represent parameters of the entire food web based on selection criteria?
+---
+---
+---
 
 ## Abstract
 
@@ -227,7 +232,7 @@ I then calculated pearson correlation coefficients for extinctions and Shannon-d
 
 Generally, overall number of extinctions increased with increasing connectance, as well as the variation in the number of extinctions (fig. 1a) . Shannon's diversity showed a strong decrease at a connectance between 0.05 and 0.20, but stayed relatively constant at connectances from 0.20 to 0.35 (fig. 1b).
 
-``` r
+```{r echo=FALSE}
 library(ggplot2)
 
 d <- read.csv("./data/20220506_96spec_2000c_04to12bas_v02.csv")[,-1]
@@ -240,16 +245,6 @@ ggplot(data=d, aes(x=con, y=ext_all))+
   scale_x_continuous(name= "Connectance", breaks = seq(0.05, 0.35, by=0.05), limits=c(0.05, 0.35))
 ```
 
-| Col1 | Col2 | Col3 |
-|------|------|------|
-|      |      |      |
-|      |      |      |
-|      |      |      |
-
-: tralalaa
-
 ## 4 Discussion
 
 ##code chunk \`\`\`{r}
-
-<https://carpentries-incubator.github.io/Reproducible-Publications-with-RStudio/07-plots-figures/index.html>
