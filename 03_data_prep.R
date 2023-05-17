@@ -55,7 +55,17 @@ n.bas_vec <- rep(NA, length(con))
   for(j in 1:length(con)) {
     
     bas <- n_tot - sum(troph.lvl[j,] > 1)             # the amount of basal species
+    
+    not.extinct <- NULL                                   # a vector of the non-extinct species
+    for (k in 1:length(extinctions[j,])) {
+      if (extinctions[j,k] == 0) {
+        not.extinct <- append(not.extinct, k)
+      }
+    }
+    
     consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
+    consumers <- consumers[consumers %in% not.extinct]# a vector of non-extinct consumers
+    
     n.bas_vec[j] <- bas                               # the number of basal species in the system
     
     slct_sm <- consumers[1:n_sub]                     # the smallest consumer species
@@ -70,7 +80,12 @@ n.bas_vec <- rep(NA, length(con))
     extinctions.big_vec[j] <- sum(extinctions[j, slct_bi])
       # extinctions in the biggest consumer species
 
+    
   #diversity in 24 species
+    consumers <- consumers[consumers %in% not.extinct]# a vector of non-extinct consumers
+    slct_sm <- consumers[1:n_sub]                     # the smallest non-extinct consumers
+    slct_bi <- c((n_tot-n_sub+1):n_tot)               # the biggest non-extinct consumers
+    
     shannon.small_vec[j] <- diversity(abundances[j, slct_sm])
       # calculates shannon index in the smallest consumer species
     shannon.BAS_vec[j]   <- diversity(abundances[j, c(1:bas)])
@@ -95,7 +110,7 @@ extinctions.rand_matTL  <- array(NA, dim = c( length(con), length(sample_size) )
 
 for (j  in 1:length(con)) {
   bas <- n_tot - sum(troph.lvl[j,] > 1)       # the number of basal species
-  consumers <- c((bas+1):n_tot)               # a vector of all consumer species
+  consumers <- c((bas+1):n_tot)                     # a vector of all consumer species
   n.bas_vec[j] <- bas
   
   #random selection of species:
