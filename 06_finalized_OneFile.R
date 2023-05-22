@@ -5,11 +5,9 @@ library(dplyr)
 library(vegan)
 library(ggplot2)
 
+####1 SIMULATING food webs using ATNr####
 
-####2 CONNECTANCE ON EXTINCTIONS / ABUNDANCES / SHANNON INDEX, using a niche-model####
-###
-###
-####2.1 set up parameters and food web####
+####1.1 set up parameters and food web####
 
 n_tot <- 96                             #no. of all species
 n_sub <- 0.25*n_tot                     #no. of species in a sub-foodweb
@@ -24,7 +22,7 @@ ext_thresh <- 0.1**6                    #threshold below which species is consid
 
 
 ###
-####2.2 initialize output arrays####
+####1.2 initialize output arrays####
 ###
 
 #output arrays: abundances (= densities)
@@ -62,13 +60,10 @@ predators_array.end <- provideDimnames(predators_array.end, sep = "_", base = li
 
 
 
-####2.3 compute food web dynamics####
+####1.3 compute food web dynamics####
 i=1
 for (i in 1:length(con)){
   
-  BM <- runif(n_tot, 1, 12) %>% #body masses of the species
-    sort()
-  BM <- (10^BM)
   
   fw <- create_niche_model(S = n_tot, C = con[i])
   n_bas <- sum(colSums(fw) == 0)
@@ -78,9 +73,12 @@ for (i in 1:length(con)){
     n_bas <- sum(colSums(fw) == 0)
   }
   
+  BM <- runif(n_tot, 1, 12) %>% #body masses of the species
+    sort()
+  BM <- (10^BM)
   
-  model <- create_model_Unscaled(n_tot, n_bas, BM, fw) %>% #creating a niche-model
-    initialise_default_Unscaled()
+  model <- create_model_Scaled(n_tot, n_bas, BM, fw) %>% #creating a niche-model
+    initialise_default_Scaled()
   model$ext <- ext_thresh
   
   #solve ode's
@@ -127,7 +125,7 @@ for (i in 1:length(con)){
 
 
 ###
-####2.4 store output arrays into RDS file####
+####1.4 store output arrays into RDS file####
 ###
 output_96 <- list(abundance_array, biomass_array, extinction_array, troph.lvl_array, 
                   prey_array, prey_array.end, predators_array, predators_array.end)
@@ -139,7 +137,7 @@ saveRDS(output_96, file = "./raw/20220506_96spec_2000c_04to12bas_v01.rds")
 
 
 ###
-####1 load raw RDS files, initialize parameters####
+####2 data WRANGLING####
 ###
 
 #1.1.1 read RDS list

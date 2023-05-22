@@ -137,6 +137,115 @@ for (j  in 1:length(con)) {
   print(j)
 }
 
+####3.1 compare exticntion rates/ realized shannon indices for each food web####
+
+rate_comp.bi <- rep(NA, length(con))
+rate_comp.sm <- rep(NA, length(con))
+
+shan_comp.bi <- rep(NA, length(con))
+shan_comp.sm <- rep(NA, length(con))
+
+for (i in 1:length(con)) {
+  n_bas <- sum(troph.lvl[i]== 1)
+  exts_all <- extinctions_vec[i]/(96-n_bas) #true ext rate in the total sample
+  exts_big <- extinctions.big_vec[i]/24     #ext rate bigs
+  exts_sml <- extinctions.small_vec[i]/24   #ext rate smalls
+  
+  rate_comp.bi[i] <- exts_big / exts_all
+  rate_comp.sm[i] <- exts_sml / exts_all
+  
+  shan_all      <- shannon_vec[i]
+  shan_big  <- shannon.big_vec[i]
+  shan_sml  <- shannon.small_vec[i]
+  
+  shan_comp.bi[i] <- shan_big/shan_all
+  shan_comp.sm[i] <- shan_sml/shan_all
+  
+}
+
+
+
+plot(con, rate_comp.bi) #sampling from big species overestimates extinction rates
+plot(con, rate_comp.sm) #sampling from small species underestimates extinction rates
+
+plot(con, shan_comp.bi, ylim = c(0, 2))
+plot(con, shan_comp.sm, ylim = c(0, 2))
+
+####3.2 for varying sub-sample size####
+
+ext_comps <- array(data=NA, 
+                   dim = c(length(con), length(sample_size), 2) ) #3rd dimension indicates whether trophic levels were considered
+
+shan_comps <- array(data=NA, 
+                    dim = c(length(con), length(sample_size), 2) )
+
+for (i in 1:length(con)) {
+  n_bas <- sum(troph.lvl[i]== 1)
+  exts.ALL <- extinctions_vec[i]/(96-n_bas)
+  shans_all <- shannon_vec[i]/log(96) #Shannon equitability index 
+  
+  for (j in 1:length(sample_size)){
+    exts    <- extinctions.rand_mat[i, j]/sample_size[j]
+    extsTL  <- extinctions.rand_matTL[i, j]/sample_size[j]
+    
+    ext_comps[i, j, 1] <- exts/exts.ALL
+    ext_comps[i, j, 2] <- extsTL/exts.ALL
+    
+    ####ADD####
+    
+    shans   <- shannon.rand_mat[i,  j]/log(sample_size[j]-extinctions.rand_mat[i, j])
+    shansTL <- shannon.rand_matTL[i,j]/log(sample_size[j]-extinctions.rand_matTL[i, j])   
+      
+    shan_comps[i, j, 1] <- shans/shans_all
+    shan_comps[i, j, 2] <- shansTL/shans_all
+  }
+}
+
+
+library(tidyr)
+#saving output:
+#extinction-rate ratios for random sampling
+d.rand_exts   <- ext_comps[,,1] %>% as.data.frame()
+d.rand_exts$con <- con
+  colnames(d.rand_exts) <- c("36", "32", "28", "24", "20", 
+                             "16", "12", "8", "4")
+data <- gather(d.rand_exts, 
+                      key= subsize, value=ext_ratio, 
+                      "36":"4", factor_key=TRUE)
+
+#extinction-rate ratios for TL sampling
+d.rand_extsTL <- ext_comps[,,2] %>% as.data.frame()
+colnames(d.rand_extsTL) <- c("36", "32", "28", "24", "20", 
+                             "16", "12", "8", "4")
+extsTL <- gather(d.rand_extsTL, 
+                key= subsize, value=ext_ratioTL, 
+                "36":"4", factor_key=TRUE)
+data$ext_ratioTL <- extsTL$ext_ratioTL
+
+
+#shannon indices from random sampling
+shan.df1 <- shan_comps[,,1] %>% as.data.frame()
+  colnames(shan.df1) <- c("36", "32", "28", "24", "20", 
+                         "16", "12", "8", "4")
+shan.df1 <- gather(shan.df1,
+                   key=subsize, value= shannon_random,
+                   "36":"4", factor_key = TRUE)  
+data$shan_rand <- shan.df1$shannon_random
+
+
+#shannon indices from TL-restricted sampling
+shan.df2 <- shan_comps[,,2] %>% as.data.frame()
+  colnames(shan.df2) <- c("36", "32", "28", "24", "20", 
+                        "16", "12", "8", "4")
+shan.df2 <- gather(shan.df2,
+                   key=subsize, value= shannon_random,
+                   "36":"4", factor_key = TRUE)   
+data$shan_TL <- shan.df2$shannon_random
+
+#check data
+colnames(data)[1] <- "con"
+str(data)
+write.csv(data, "./data/20230523_SampleSizes_v01.csv")
 
 ###
 ####4 DATA table with all response variables####
